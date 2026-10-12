@@ -82,7 +82,7 @@ export interface ScheduleSlot {
   title: string;
   subtitle: string;
   arabicTitle?: string;
-  category: 'ibadah' | 'halaqah' | 'perjalanan' | 'belajar' | 'istirahat' | 'fleksibel';
+  category: 'ibadah' | 'halaqah' | 'aktivitas' | 'belajar' | 'istirahat' | 'fleksibel';
   isFixedHalaqah?: boolean;
 }
 
@@ -411,7 +411,7 @@ export const MUTABAAH_ITEMS: MutabaahItem[] = [
     id: 'dzikir_pagi',
     title: 'Morning Dzikr',
     arabicTitle: 'أذكار الصباح',
-    targetText: 'After Fajr or during morning commute',
+    targetText: 'After Fajr or during morning routine',
     timeHint: '04:45 – 05:15',
     group: 'Dzikr & Deeds',
     isExemptDuringHaidh: false,
@@ -1031,7 +1031,7 @@ export const INITIAL_LIFE_GOALS: LifeGoalItem[] = [
     progress: 80,
     milestones: [
       { id: 'gs1-1', label: 'Wake up 04:15–04:30 for Tahajjud & Fajr before morning halaqah', completed: true },
-      { id: 'gs1-2', label: 'Arrive punctually for halaqah (05:15–06:30 & 18:00–21:00 with 15-20 min commute)', completed: true },
+      { id: 'gs1-2', label: 'Arrive punctually for halaqah sessions (05:15–06:30 & 18:00–21:00)', completed: true },
       { id: 'gs1-3', label: 'Consistent 1 Juz daily tilawah and morning movement', completed: true },
       { id: 'gs1-4', label: 'Healthy sleep by 22:00–22:30 after evening reflection', completed: false },
     ],
@@ -1284,7 +1284,7 @@ export interface ExpenseRecord {
   id: string;
   date: string;
   title: string;
-  category: 'Fuel & Commute' | 'Infaq & Internet' | 'Friends & Hangout' | 'Personal & Shopping' | 'Unexpected';
+  category: 'Fuel & Transport' | 'Infaq & Internet' | 'Friends & Hangout' | 'Personal & Shopping' | 'Unexpected';
   amount: number;
 }
 
@@ -1293,7 +1293,7 @@ export const INITIAL_EXPENSES: ExpenseRecord[] = [
     id: 'exp-1',
     date: 'Week 1',
     title: 'Full Tank Fuel & Transportation',
-    category: 'Fuel & Commute',
+    category: 'Fuel & Transport',
     amount: 60000,
   },
   {
@@ -1320,8 +1320,8 @@ export const INITIAL_EXPENSES: ExpenseRecord[] = [
   {
     id: 'exp-5',
     date: 'Week 2',
-    title: 'Fuel Top-up & Parking for Commute',
-    category: 'Fuel & Commute',
+    title: 'Fuel Top-up & Parking',
+    category: 'Fuel & Transport',
     amount: 55000,
   },
 ];

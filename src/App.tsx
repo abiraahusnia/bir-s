@@ -58,7 +58,7 @@ const getDefaultSchedules = (): Record<DayKey, ScheduleSlot[]> => ({
 export default function App() {
   const [activeSection, setActiveSection] = useState<ActiveSection>('harian');
 
-  // Determine today's day key dynamically on initial load
+  // Determine today's day key dynamically on initial load (Sunday first)
   const getTodayKey = (): DayKey => {
     const jsDay = new Date().getDay();
     const map: Record<number, DayKey> = {
@@ -70,7 +70,7 @@ export default function App() {
       5: 'jumat',
       6: 'sabtu',
     };
-    return map[jsDay] || 'senin';
+    return map[jsDay] || 'minggu';
   };
 
   const [selectedDay, setSelectedDay] = useState<DayKey>(getTodayKey);
@@ -110,10 +110,6 @@ export default function App() {
   const [completedSlots, setCompletedSlots] = useState<Record<string, boolean>>({
     'senin-1': true,
     'senin-2': true,
-    'senin-3': true,
-    'senin-4': true,
-    'senin-5': true,
-    'senin-6': true,
     'senin-nap': false,
   });
 
@@ -124,15 +120,14 @@ export default function App() {
     'senin-shalat_dhuha': true,
     'senin-olahraga': true,
     'senin-infaq': true,
-    'senin-mengaji_1_juz': true,
     'senin-rawatib_qabla_zuhur': true,
   });
 
-  const [currentTilawahJuz, setCurrentTilawahJuz] = useState<number>(4);
+  const [currentTilawahJuz, setCurrentTilawahJuz] = useState<number>(1);
   const [tilawahRecordsByDay, setTilawahRecordsByDay] = useState<
     Record<string, DailyTilawahRecord>
   >({
-    senin: { juz: 4, startPage: 62, endPage: 82, totalPages: 21 },
+    senin: { juz: 1, startPage: 1, endPage: 21, totalPages: 21 },
   });
   const [istighfarByDay, setIstighfarByDay] = useState<Record<string, number>>({
     senin: 100,
@@ -144,13 +139,10 @@ export default function App() {
 
   const [isHaidhModeByDay, setIsHaidhModeByDay] = useState<Record<string, boolean>>({});
 
-  // 196-Day Murojaah State
+  // 196-Day Murojaah State: Starts from Day 1, user clicks to begin and track
   const [isMurojaahStarted, setIsMurojaahStarted] = useState<boolean>(true);
-  const [activeMurojaahDay, setActiveMurojaahDay] = useState<number>(3);
-  const [completedMurojaahDays, setCompletedMurojaahDays] = useState<Record<number, boolean>>({
-    1: true,
-    2: true,
-  });
+  const [activeMurojaahDay, setActiveMurojaahDay] = useState<number>(1);
+  const [completedMurojaahDays, setCompletedMurojaahDays] = useState<Record<number, boolean>>({});
 
   // Weekly, Monthly, Annual Planning State
   const [weeklyTargets, setWeeklyTargets] = useState<WeeklyTargetItem[]>(INITIAL_WEEKLY_TARGETS);
@@ -185,8 +177,15 @@ export default function App() {
       if (parsed.muhasabahNotesByDay) setMuhasabahNotesByDay(parsed.muhasabahNotesByDay);
       if (typeof parsed.isMurojaahStarted === 'boolean')
         setIsMurojaahStarted(parsed.isMurojaahStarted);
-      if (typeof parsed.activeMurojaahDay === 'number')
-        setActiveMurojaahDay(parsed.activeMurojaahDay);
+      if (typeof parsed.activeMurojaahDay === 'number' && parsed.activeMurojaahDay >= 1 && parsed.activeMurojaahDay <= 196) {
+        if (parsed.activeMurojaahDay === 24 && (!parsed.completedMurojaahDays || !parsed.completedMurojaahDays[24])) {
+          setActiveMurojaahDay(1);
+        } else {
+          setActiveMurojaahDay(parsed.activeMurojaahDay);
+        }
+      } else {
+        setActiveMurojaahDay(1);
+      }
       if (parsed.completedMurojaahDays) setCompletedMurojaahDays(parsed.completedMurojaahDays);
       if (parsed.weeklyTargets) setWeeklyTargets(parsed.weeklyTargets);
       if (parsed.monthlyPlans) setMonthlyPlans(parsed.monthlyPlans);
@@ -733,6 +732,7 @@ export default function App() {
             istighfarCount={istighfarByDay[selectedDay] || 0}
             onUpdateIstighfar={handleUpdateIstighfar}
             activeMurojaahDay={activeMurojaahDay}
+            onSetActiveMurojaahDay={setActiveMurojaahDay}
             completedMurojaahDays={completedMurojaahDays}
             onToggleMurojaahDay={handleToggleMurojaahDay}
             onNavigateToMurojaah={() => setActiveSection('murojaah')}

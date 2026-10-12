@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, ChevronRight, RotateCcw, Calendar, BookOpen, HelpCircle } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, RotateCcw, Calendar, BookOpen, HelpCircle } from 'lucide-react';
 import {
   MUROJAAH_PHASES,
   ALL_196_MUROJAAH_DAYS,
@@ -81,14 +81,14 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
 
             <button
               type="button"
-              onClick={onToggleProgramStarted}
-              className={`min-h-[44px] px-4 rounded-xl text-xs font-semibold border transition-colors whitespace-nowrap ${
-                isProgramStarted
-                  ? 'bg-[#F7F4ED] text-[#2F3E2C] border-[#C7D3C0] hover:bg-[#EAE6DC]'
-                  : 'bg-[#8FA28A] text-white border-[#8FA28A] hover:bg-[#7A8E75]'
-              }`}
+              onClick={() => {
+                onSetActiveDay(1);
+                if (!isProgramStarted) onToggleProgramStarted();
+              }}
+              className="min-h-[44px] px-3.5 rounded-xl text-xs font-semibold bg-[#8FA28A] text-white hover:bg-[#7A8E75] transition-colors flex items-center gap-1.5 shadow-xs"
+              title="Start or reset curriculum to Day 1"
             >
-              {isProgramStarted ? 'Mode: In Progress' : 'Start Day 1'}
+              <span>Start from Day 1</span>
             </button>
 
             <div className="flex items-center gap-1.5 bg-[#F7F4ED] border border-[#C7D3C0] rounded-xl px-3 min-h-[44px]">
@@ -222,6 +222,18 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
                     : `Mark Day ${currentDaySpec.day} Done`}
                 </span>
               </button>
+
+              {activeDay > 1 && (
+                <button
+                  type="button"
+                  onClick={() => onSetActiveDay(activeDay - 1)}
+                  className="min-h-[44px] min-w-[44px] rounded-xl bg-white border border-[#C7D3C0] text-[#243023] flex items-center justify-center hover:bg-[#E8EFE5] transition-colors"
+                  title="Previous day"
+                  aria-label="Previous day"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+              )}
 
               {activeDay < 196 && (
                 <button

@@ -42,6 +42,7 @@ interface DailyMutabaahViewProps {
   istighfarCount: number;
   onUpdateIstighfar: (newCount: number) => void;
   activeMurojaahDay: number;
+  onSetActiveMurojaahDay?: (dayNum: number) => void;
   completedMurojaahDays: Record<number, boolean>;
   onToggleMurojaahDay: (dayNum: number) => void;
   onNavigateToMurojaah: () => void;
@@ -69,6 +70,7 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
   istighfarCount,
   onUpdateIstighfar,
   activeMurojaahDay,
+  onSetActiveMurojaahDay,
   completedMurojaahDays,
   onToggleMurojaahDay,
   onNavigateToMurojaah,
@@ -355,147 +357,166 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
         </div>
       </section>
 
-      {/* 2. QUICK HABIT CARDS: 1 JUZ TILAWAH, MUROJAAH ROADMAP & ISTIGHFAR */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Daily Tilawah Card (Min 1 Juz, Supports > 1 Juz, Start/End Page, >= 20 Pages Target) */}
-        <div className="bg-white/95 border border-[#C7D3C0] rounded-2xl p-5 space-y-3 flex flex-col justify-between shadow-xs">
-          <div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-[#5A6B57] flex items-center gap-1.5">
-                <BookOpen className="w-4 h-4 text-[#8FA28A]" />
-                <span>Daily Tilawah</span>
-              </span>
-              <div className="flex items-center gap-2">
-                {isHaidhMode && (
-                  <span className="px-2 py-0.5 rounded-md bg-[#E4D7CF] text-[#63483C] text-[10px] font-semibold">
-                    Exempt (معذورة)
-                  </span>
-                )}
+      {/* 2. QUICK HABIT CARDS: 1 JUZ TILAWAH (EXCUSED DURING HAIDH), MUROJAAH ROADMAP & ISTIGHFAR */}
+      {isHaidhMode && (
+        <div className="p-3.5 rounded-2xl bg-[#F4EFEB] border border-[#D9C8BE] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+          <div className="flex items-center gap-2 text-[#5C4538]">
+            <span className="px-2 py-0.5 rounded-md bg-[#E4D7CF] font-bold text-[10px] text-[#4A3225]">
+              Exempt · معذورة
+            </span>
+            <span className="font-semibold">
+              Period Exemption Active: Tilawah of the Mushaf is paused. Murojaah (oral revision), Dzikr, and Istighfar remain actively rewarded.
+            </span>
+          </div>
+          <span className="font-arabic text-xs text-[#63483C] shrink-0">رُفِعَ الْحَرَجُ · ذِكْرٌ وَاسْتِغْفَار</span>
+        </div>
+      )}
+
+      <section
+        className={`grid grid-cols-1 ${
+          isHaidhMode ? 'md:grid-cols-2' : 'md:grid-cols-3'
+        } gap-4`}
+      >
+        {/* Daily Tilawah Card: AUTOMATICALLY HIDDEN DURING HAIDH */}
+        {!isHaidhMode && (
+          <div className="bg-white/95 border border-[#C7D3C0] rounded-2xl p-5 space-y-3 flex flex-col justify-between shadow-xs">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#5A6B57] flex items-center gap-1.5">
+                  <BookOpen className="w-4 h-4 text-[#8FA28A]" />
+                  <span>Daily Tilawah</span>
+                </span>
                 <span className="font-arabic text-sm text-[#3A4B37]">تلاوة القرآن</span>
               </div>
+
+              {/* Target & Result Overview */}
+              <div className="mt-2.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#243023]">
+                    {isTilawahTargetReached
+                      ? 'Target 1 Juz Reached!'
+                      : 'Target: Min 1 Juz (20 Pages)'}
+                  </span>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                      isTilawahTargetReached
+                        ? 'bg-[#EAEFE8] text-[#2E4729]'
+                        : 'bg-[#F7F4ED] text-[#6E7D6B] border border-[#C7D3C0]'
+                    }`}
+                  >
+                    {isTilawahTargetReached
+                      ? '≥ 20 Pages (Completed)'
+                      : `${tilawahTotalPages} / 20 Pages`}
+                  </span>
+                </div>
+
+                {/* Result Card: Juz, Start Page, End Page, Total Pages */}
+                <div className="p-2.5 rounded-xl bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-[#5A6B57]">Juz &amp; Pages:</span>
+                    <span className="font-bold text-[#243023] font-mono">
+                      Juz {tilawahJuz} (p. {tilawahStartPage} – {tilawahEndPage})
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-[#5A6B57]">Pages Read:</span>
+                    <span className="font-extrabold text-[#2E4729] font-mono text-sm">
+                      {tilawahTotalPages} Pages
+                      {tilawahTotalPages > 20 && (
+                        <span className="text-[10px] text-[#5A6B57] font-sans font-normal ml-1">
+                          (+{tilawahTotalPages - 20} pages beyond 1 juz)
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Target & Result Overview */}
-            <div className="mt-2.5 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#243023]">
-                  {isTilawahTargetReached ? 'Target 1 Juz Reached!' : 'Target: Min 1 Juz (20 Pages)'}
-                </span>
-                <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                    isTilawahTargetReached
-                      ? 'bg-[#EAEFE8] text-[#2E4729]'
-                      : 'bg-[#F7F4ED] text-[#6E7D6B] border border-[#C7D3C0]'
-                  }`}
+            {/* Page inputs and fast increment buttons */}
+            <div className="space-y-2 pt-1 border-t border-[#C7D3C0]/40">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10px] text-[#5A6B57] mb-0.5 font-medium">
+                    Start Page
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="604"
+                    value={tilawahStartPage}
+                    onChange={(e) => handleUpdateStartPage(Number(e.target.value))}
+                    className="w-full bg-white border border-[#C7D3C0] rounded-lg px-2.5 py-1 text-xs font-mono font-semibold text-[#243023]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-[#5A6B57] mb-0.5 font-medium">
+                    End Page
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="604"
+                    value={tilawahEndPage}
+                    onChange={(e) => handleUpdateEndPage(Number(e.target.value))}
+                    className="w-full bg-white border border-[#C7D3C0] rounded-lg px-2.5 py-1 text-xs font-mono font-semibold text-[#243023]"
+                  />
+                </div>
+              </div>
+
+              {/* Quick actions: +1 Page, +5 Pages, +1 Juz */}
+              <div className="flex items-center gap-1.5 pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => handleAddTilawahPages(1)}
+                  className="flex-1 py-1 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0] text-[11px] font-semibold text-[#243023] hover:bg-[#EAE6DC]"
+                  title="Add 1 Page"
                 >
-                  {isTilawahTargetReached ? '≥ 20 Pages (Completed)' : `${tilawahTotalPages} / 20 Pages`}
+                  +1 Page
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAddTilawahPages(5)}
+                  className="flex-1 py-1 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0] text-[11px] font-semibold text-[#243023] hover:bg-[#EAE6DC]"
+                  title="Add 5 Pages"
+                >
+                  +5 Pages
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextTilawahJuz}
+                  className="flex-1 py-1 rounded-lg bg-[#8FA28A] text-white text-[11px] font-semibold hover:bg-[#7A8E75]"
+                  title="Advance to Next Juz (20 Pages)"
+                >
+                  +1 Juz
+                </button>
+              </div>
+
+              {/* Juz Switchers */}
+              <div className="flex items-center justify-between text-[11px] text-[#5A6B57] pt-0.5">
+                <button
+                  type="button"
+                  onClick={handlePrevTilawahJuz}
+                  className="hover:text-[#243023] font-semibold"
+                >
+                  &larr; Prev Juz
+                </button>
+                <span className="font-mono font-bold text-[#3A4B37]">
+                  Juz {tilawahJuz} of 30
                 </span>
-              </div>
-
-              {/* Result Card: Juz, Start Page, End Page, Total Pages */}
-              <div className="p-2.5 rounded-xl bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[#5A6B57]">Juz &amp; Pages:</span>
-                  <span className="font-bold text-[#243023] font-mono">
-                    Juz {tilawahJuz} (p. {tilawahStartPage} – {tilawahEndPage})
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[#5A6B57]">Pages Read:</span>
-                  <span className="font-extrabold text-[#2E4729] font-mono text-sm">
-                    {tilawahTotalPages} Pages
-                    {tilawahTotalPages > 20 && (
-                      <span className="text-[10px] text-[#5A6B57] font-sans font-normal ml-1">
-                        (+{tilawahTotalPages - 20} pages beyond 1 juz)
-                      </span>
-                    )}
-                  </span>
-                </div>
+                <button
+                  type="button"
+                  onClick={handleNextTilawahJuz}
+                  className="hover:text-[#243023] font-semibold"
+                >
+                  Next Juz &rarr;
+                </button>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Page inputs and fast increment buttons */}
-          <div className="space-y-2 pt-1 border-t border-[#C7D3C0]/40">
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-[10px] text-[#5A6B57] mb-0.5 font-medium">
-                  Start Page
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="604"
-                  value={tilawahStartPage}
-                  onChange={(e) => handleUpdateStartPage(Number(e.target.value))}
-                  className="w-full bg-white border border-[#C7D3C0] rounded-lg px-2.5 py-1 text-xs font-mono font-semibold text-[#243023]"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] text-[#5A6B57] mb-0.5 font-medium">
-                  End Page
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="604"
-                  value={tilawahEndPage}
-                  onChange={(e) => handleUpdateEndPage(Number(e.target.value))}
-                  className="w-full bg-white border border-[#C7D3C0] rounded-lg px-2.5 py-1 text-xs font-mono font-semibold text-[#243023]"
-                />
-              </div>
-            </div>
-
-            {/* Quick actions: +1 Page, +5 Pages, +1 Juz */}
-            <div className="flex items-center gap-1.5 pt-0.5">
-              <button
-                type="button"
-                onClick={() => handleAddTilawahPages(1)}
-                className="flex-1 py-1 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0] text-[11px] font-semibold text-[#243023] hover:bg-[#EAE6DC]"
-                title="Add 1 Page"
-              >
-                +1 Page
-              </button>
-              <button
-                type="button"
-                onClick={() => handleAddTilawahPages(5)}
-                className="flex-1 py-1 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0] text-[11px] font-semibold text-[#243023] hover:bg-[#EAE6DC]"
-                title="Add 5 Pages"
-              >
-                +5 Pages
-              </button>
-              <button
-                type="button"
-                onClick={handleNextTilawahJuz}
-                className="flex-1 py-1 rounded-lg bg-[#8FA28A] text-white text-[11px] font-semibold hover:bg-[#7A8E75]"
-                title="Advance to Next Juz (20 Pages)"
-              >
-                +1 Juz
-              </button>
-            </div>
-
-            {/* Juz Switchers */}
-            <div className="flex items-center justify-between text-[11px] text-[#5A6B57] pt-0.5">
-              <button
-                type="button"
-                onClick={handlePrevTilawahJuz}
-                className="hover:text-[#243023] font-semibold"
-              >
-                &larr; Prev Juz
-              </button>
-              <span className="font-mono font-bold text-[#3A4B37]">Juz {tilawahJuz} of 30</span>
-              <button
-                type="button"
-                onClick={handleNextTilawahJuz}
-                className="hover:text-[#243023] font-semibold"
-              >
-                Next Juz &rarr;
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* 196-Day Murojaah Quick Tracker with EXACT PAGE TARGET */}
+        {/* 196-Day Murojaah Quick Tracker: ALWAYS PRESENT (Permissible during Haidh) */}
         <div className="bg-white/95 border border-[#C7D3C0] rounded-2xl p-5 space-y-2.5 flex flex-col justify-between shadow-xs">
           <div>
             <div className="flex items-center justify-between">
@@ -503,23 +524,69 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
                 <BookOpen className="w-4 h-4 text-[#8FA28A]" />
                 <span>Murojaah Today</span>
               </span>
-              <span className="font-arabic text-sm text-[#3A4B37]">مراجعة متقنة</span>
+              <div className="flex items-center gap-2">
+                {isHaidhMode && (
+                  <span className="px-2 py-0.5 rounded-md bg-[#EAEFE8] text-[#2E4729] text-[10px] font-semibold">
+                    Permissible · مباحة
+                  </span>
+                )}
+                <span className="font-arabic text-sm text-[#3A4B37]">مراجعة متقنة</span>
+              </div>
             </div>
 
-            <div className="mt-2">
-              <div className="text-xs text-[#5A6B57]">
-                Day {todayMurojaahSpec.day} · {todayMurojaahSpec.phaseTitle}
+            {/* Day Selector & Navigation Controls */}
+            <div className="mt-2 space-y-1">
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-[#5A6B57] font-mono">
+                  Day {todayMurojaahSpec.day} of 196 · {todayMurojaahSpec.phaseTitle}
+                </div>
+                {onSetActiveMurojaahDay && (
+                  <div className="flex items-center gap-1 text-[11px]">
+                    <button
+                      type="button"
+                      disabled={activeMurojaahDay <= 1}
+                      onClick={() => onSetActiveMurojaahDay(Math.max(1, activeMurojaahDay - 1))}
+                      className="px-1.5 py-0.5 rounded bg-[#F7F4ED] border border-[#C7D3C0] text-[#5A6B57] hover:text-[#243023] disabled:opacity-40 disabled:cursor-not-allowed font-semibold"
+                      title="Previous Day"
+                    >
+                      &larr;
+                    </button>
+                    {activeMurojaahDay !== 1 && (
+                      <button
+                        type="button"
+                        onClick={() => onSetActiveMurojaahDay(1)}
+                        className="px-1.5 py-0.5 rounded bg-[#EAEFE8] text-[#243023] font-semibold text-[10px] hover:bg-[#DCE5D8]"
+                        title="Start or jump to Day 1"
+                      >
+                        Day 1
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      disabled={activeMurojaahDay >= 196}
+                      onClick={() => onSetActiveMurojaahDay(Math.min(196, activeMurojaahDay + 1))}
+                      className="px-1.5 py-0.5 rounded bg-[#F7F4ED] border border-[#C7D3C0] text-[#5A6B57] hover:text-[#243023] disabled:opacity-40 disabled:cursor-not-allowed font-semibold"
+                      title="Next Day"
+                    >
+                      &rarr;
+                    </button>
+                  </div>
+                )}
               </div>
-              <div className="text-lg font-bold text-[#243023] truncate mt-0.5">
+
+              <div className="text-lg font-bold text-[#243023] truncate">
                 {todayMurojaahSpec.targetLabel}
               </div>
-              <div className="text-xs font-bold text-[#3A4B37] mt-0.5">
+              <div className="text-xs font-bold text-[#3A4B37]">
                 Target: {todayMurojaahSpec.pageRangeText} ({todayMurojaahSpec.sheetsEstimateText})
+              </div>
+              <div className="text-[11px] text-[#5A6B57]">
+                {todayMurojaahSpec.formulaNote}
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 pt-1">
+          <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-[#C7D3C0]/40">
             <button
               type="button"
               onClick={() => onToggleMurojaahDay(activeMurojaahDay)}
@@ -530,7 +597,11 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
               }`}
             >
               <Check className="w-3.5 h-3.5" />
-              <span>{isTodayMurojaahDone ? 'Completed' : 'Mark Done'}</span>
+              <span>
+                {isTodayMurojaahDone
+                  ? `Day ${activeMurojaahDay} Completed`
+                  : `Mark Day ${activeMurojaahDay} Done`}
+              </span>
             </button>
             <button
               type="button"
@@ -550,7 +621,7 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
           </div>
         </div>
 
-        {/* Istighfar Counter Card - Incrementable Persatuan (+1 tap-by-tap) */}
+        {/* Istighfar Counter Card: Incrementable PERSATUAN (+1 tap strictly) */}
         <div className="bg-white/95 border border-[#C7D3C0] rounded-2xl p-5 space-y-3 flex flex-col justify-between shadow-xs">
           <div>
             <div className="flex items-center justify-between">
@@ -569,12 +640,12 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
             </div>
           </div>
 
-          <div className="space-y-2 pt-1">
-            {/* Primary Tap Button - Persatuan (+1 tap) */}
+          <div className="space-y-2 pt-1 border-t border-[#C7D3C0]/40">
+            {/* Primary Tap Button: Persatuan (+1 tap) */}
             <button
               type="button"
               onClick={() => onUpdateIstighfar(istighfarCount + 1)}
-              className="w-full min-h-[42px] py-2 px-3 rounded-xl bg-[#8FA28A] text-white text-xs font-bold hover:bg-[#7A8E75] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-xs"
+              className="w-full min-h-[46px] py-2 px-3 rounded-xl bg-[#8FA28A] text-white text-xs font-bold hover:bg-[#7A8E75] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-xs"
               title="Tap +1 Istighfar"
             >
               <span className="text-sm font-extrabold">+1</span>
@@ -582,39 +653,26 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
               <span className="font-arabic text-[11px] opacity-90">أَسْتَغْفِرُ اللَّهَ</span>
             </button>
 
-            {/* Supporting controls: -1, +10, +33, Reset */}
-            <div className="flex items-center gap-1.5 text-xs">
+            {/* Supporting controls: -1 undo, Reset */}
+            <div className="flex items-center justify-between gap-2 text-xs">
               <button
                 type="button"
                 onClick={() => onUpdateIstighfar(Math.max(0, istighfarCount - 1))}
-                className="py-1 px-2 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0] text-[#5A6B57] hover:text-[#243023] hover:bg-[#EAE6DC] font-mono font-bold"
+                className="flex-1 py-1.5 px-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0] text-[#5A6B57] hover:text-[#243023] hover:bg-[#EAE6DC] font-mono font-bold flex items-center justify-center gap-1"
                 title="Decrease by 1"
               >
-                -1
+                <span>-1</span>
+                <span className="text-[10px] font-sans font-normal text-[#6E7D6B]">Undo</span>
               </button>
-              <button
-                type="button"
-                onClick={() => onUpdateIstighfar(istighfarCount + 10)}
-                className="flex-1 py-1 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0] text-[#5A6B57] hover:text-[#243023] hover:bg-[#EAE6DC] font-mono font-semibold"
-                title="+10 Quick Add"
-              >
-                +10
-              </button>
-              <button
-                type="button"
-                onClick={() => onUpdateIstighfar(istighfarCount + 33)}
-                className="flex-1 py-1 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0] text-[#5A6B57] hover:text-[#243023] hover:bg-[#EAE6DC] font-mono font-semibold"
-                title="+33 Quick Add"
-              >
-                +33
-              </button>
+
               <button
                 type="button"
                 onClick={() => onUpdateIstighfar(0)}
-                className="p-1.5 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0] text-[#6E7D6B] hover:text-red-700 hover:bg-[#FBEBE8]"
+                className="py-1.5 px-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0] text-[#6E7D6B] hover:text-red-700 hover:bg-[#FBEBE8] flex items-center gap-1.5 transition-colors"
                 title="Reset Istighfar to 0"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
+                <span className="text-[11px]">Reset</span>
               </button>
             </div>
           </div>

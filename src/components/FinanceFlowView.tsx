@@ -86,7 +86,7 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
   // Expense form state
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [expTitle, setExpTitle] = useState('');
-  const [expCategory, setExpCategory] = useState<ExpenseRecord['category']>('Fuel & Commute');
+  const [expCategory, setExpCategory] = useState<ExpenseRecord['category']>('Fuel & Transport');
   const [expAmount, setExpAmount] = useState('');
   const [expDate, setExpDate] = useState('Today');
 
@@ -100,7 +100,7 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
   // Edit expense inline
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [editExpTitle, setEditExpTitle] = useState('');
-  const [editExpCategory, setEditExpCategory] = useState<ExpenseRecord['category']>('Fuel & Commute');
+  const [editExpCategory, setEditExpCategory] = useState<ExpenseRecord['category']>('Fuel & Transport');
   const [editExpAmount, setEditExpAmount] = useState('');
 
   // Allocation filter & editing state
@@ -492,7 +492,7 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                   }
                   className="w-full bg-white border border-[#C7D3C0] rounded-xl px-3 min-h-[40px] text-xs text-[#243023] focus:outline-none focus:border-[#8FA28A]"
                 >
-                  <option value="Fuel & Commute">Fuel &amp; Transportation</option>
+                  <option value="Fuel & Transport">Fuel &amp; Transportation</option>
                   <option value="Infaq & Internet">Infaq &amp; Internet</option>
                   <option value="Friends & Hangout">Friends &amp; Hangouts</option>
                   <option value="Personal & Shopping">Personal &amp; Shopping</option>
@@ -1038,7 +1038,7 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                           }
                           className="bg-white border border-[#C7D3C0] rounded-lg p-1.5 text-xs text-[#243023]"
                         >
-                          <option value="Fuel & Commute">Fuel &amp; Transportation</option>
+                          <option value="Fuel & Transport">Fuel &amp; Transportation</option>
                           <option value="Infaq & Internet">Infaq &amp; Internet</option>
                           <option value="Friends & Hangout">Friends &amp; Hangouts</option>
                           <option value="Personal & Shopping">Personal &amp; Shopping</option>
