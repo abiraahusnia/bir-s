@@ -5,7 +5,6 @@ import {
   Layers,
   Compass,
   Wallet,
-  X,
   Edit2,
   Clock,
 } from 'lucide-react';
@@ -74,7 +73,6 @@ export default function App() {
   };
 
   const [selectedDay, setSelectedDay] = useState<DayKey>(getTodayKey);
-  const [showMobileInstallGuide, setShowMobileInstallGuide] = useState(false);
 
   // Live real-time clock state for top bar
   const [currentTimeStr, setCurrentTimeStr] = useState<string>('');
@@ -692,6 +690,7 @@ export default function App() {
             >
               <Edit2 className="w-3.5 h-3.5 mr-1.5 my-auto" />
               <span>Edit Schedule</span>
+            </button>
           </div>
         </div>
       </header>
@@ -864,78 +863,6 @@ export default function App() {
         onUpdateLifeGoalItem={handleUpdateLifeGoalItem}
         onDeleteLifeGoalItem={handleDeleteLifeGoalItem}
       />
-
-      {/* iOS & Android Installation Guide Modal */}
-      {showMobileInstallGuide && (
-        <div
-          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4"
-          onClick={() => setShowMobileInstallGuide(false)}
-        >
-          <div
-            className="w-full max-w-lg bg-[#F7F4ED] border border-[#C7D3C0] rounded-t-3xl sm:rounded-2xl p-6 space-y-4 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="w-10 h-1.5 bg-[#C7D3C0] rounded-full mx-auto sm:hidden" />
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs text-[#5A6B57]">Ready for iPhone (iOS) &amp; Android</p>
-                <h3 className="text-xl font-bold tracking-tight text-[#243023] mt-0.5">
-                  Install bir&apos;s on Mobile Home Screen
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowMobileInstallGuide(false)}
-                className="min-h-[44px] min-w-[44px] -mr-2 -mt-2 flex items-center justify-center rounded-xl text-[#5A6B57] hover:text-[#243023]"
-                aria-label="Close guide"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs text-[#3A4B37] leading-relaxed">
-              <div className="p-4 rounded-xl bg-white border border-[#C7D3C0]">
-                <div className="font-bold text-[#243023] mb-1">
-                  1. iPhone &amp; iPad Users (iOS Safari)
-                </div>
-                <p>
-                  Open in <strong>Safari</strong>, tap the <strong>Share</strong> icon, and select{' '}
-                  <strong>&ldquo;Add to Home Screen&rdquo;</strong>.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-white border border-[#C7D3C0]">
-                <div className="font-bold text-[#243023] mb-1">
-                  2. Android Users (Google Chrome)
-                </div>
-                <p>
-                  Open in <strong>Chrome</strong>, tap the <strong>three dots (⋮)</strong> at top right, and choose{' '}
-                  <strong>&ldquo;Add to Home screen&rdquo;</strong> or <strong>&ldquo;Install App&rdquo;</strong>.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-white border border-[#C7D3C0]">
-                <div className="font-bold text-[#243023] mb-1">
-                  Offline &amp; Automatic Saving
-                </div>
-                <p>
-                  All your schedule customizations, nap slots, murojaah milestones, and financial logs are securely stored right on your device.
-                </p>
-              </div>
-            </div>
-
-            <div className="pt-2 flex items-center justify-end">
-              <button
-                type="button"
-                onClick={() => setShowMobileInstallGuide(false)}
-                className="w-full sm:w-auto min-h-[44px] px-6 rounded-xl bg-[#8FA28A] text-white text-xs font-semibold hover:bg-[#7A8E75] transition-colors"
-              >
-                Got It
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
