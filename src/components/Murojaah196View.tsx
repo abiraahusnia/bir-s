@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, ChevronLeft, ChevronRight, RotateCcw, Calendar, BookOpen, HelpCircle } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
 import {
   MUROJAAH_PHASES,
   ALL_196_MUROJAAH_DAYS,
@@ -27,7 +27,6 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
   onToggleProgramStarted,
 }) => {
   const [selectedPhaseFilter, setSelectedPhaseFilter] = useState<number | 'all'>('all');
-  const [showPageGuide, setShowPageGuide] = useState(false);
   const [showPageGuideModal, setShowPageGuideModal] = useState(false);
 
   const totalCompleted = Object.values(completedDays).filter(Boolean).length;
@@ -99,11 +98,11 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
                 id="murojaah-day-select"
                 value={activeDay}
                 onChange={(e) => onSetActiveDay(Number(e.target.value))}
-                className="bg-transparent text-xs font-mono font-semibold text-[#243023] focus:outline-none py-1"
+                className="bg-transparent text-xs font-mono font-semibold text-[#243023] focus:outline-none py-1 w-[120px] sm:w-auto"
               >
                 {ALL_196_MUROJAAH_DAYS.map((entry) => (
                   <option key={entry.day} value={entry.day}>
-                    Day {entry.day} — {entry.targetLabel} ({entry.pageRangeText})
+                    Day {entry.day} — {entry.targetLabel.substring(0, 20)}...
                   </option>
                 ))}
               </select>
@@ -111,114 +110,62 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
           </div>
         </div>
 
-        {/* EXPLANATION ACCORDION: HOW TO CALCULATE TARGET PAGES & SHEETS */}
-        {showPageGuide && (
-          <div className="mt-5 p-4 rounded-xl bg-white border border-[#C7D3C0] space-y-2.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-[#8FA28A]" />
-                <h4 className="text-xs font-bold text-[#243023]">
-                  How to Calculate Daily Pages &amp; Sheets in 1 Juz:
-                </h4>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowPageGuide(false)}
-                className="text-[11px] text-[#6E7D6B] hover:text-[#243023]"
-              >
-                Close Guide
-              </button>
-            </div>
-            <p className="text-xs text-[#5A6B57] leading-relaxed">
-              The standard <strong>Madinah Mushaf (15 lines per page)</strong> contains exactly <strong>20 pages per Juz (10 double-sided sheets)</strong>, except Juz 30 (23 pages) and Juz 1 (21 pages).
-              The system automatically calculates your daily milestones:
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-[11px]">
-              <div className="p-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1">
-                <div className="font-bold text-[#243023]">Juz 28 (2-Day Allocation)</div>
-                <div className="text-[#3A4B37]">20 pages ÷ 2 = <strong>10 pages/day (~5 sheets)</strong></div>
-                <div className="text-[10px] text-[#6E7D6B]">Day 3: p. 542–551 · Day 4: p. 552–561</div>
-              </div>
-              <div className="p-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1">
-                <div className="font-bold text-[#243023]">Juz 2 (4-Day Allocation)</div>
-                <div className="text-[#3A4B37]">20 pages ÷ 4 = <strong>5 pages/day (~2.5 sheets)</strong></div>
-                <div className="text-[10px] text-[#6E7D6B]">Pace yourself with 5 calm pages daily</div>
-              </div>
-              <div className="p-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1">
-                <div className="font-bold text-[#243023]">Juz 21 (10-Day Allocation)</div>
-                <div className="text-[#3A4B37]">20 pages ÷ 10 = <strong>2 pages/day (1 sheet)</strong></div>
-                <div className="text-[10px] text-[#6E7D6B]">Lightweight, 1 double-sided sheet per day</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Active Day Spotlight Strip with EXACT PAGES CALCULATED */}
+        {/* COMPACT: Active Day Spotlight Strip */}
         <div className="mt-6 pt-5 border-t border-[#C7D3C0]/60 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-          <div className="md:col-span-7 flex flex-col justify-between gap-3 p-4 rounded-xl bg-[#F7F4ED] border border-[#C7D3C0]">
-            <div>
-              <div className="flex items-center justify-between">
-                <div className="text-xs text-[#5A6B57] font-mono tabular-nums">
-                  Target Day {currentDaySpec.day} of 196 · {currentDaySpec.phaseTitle}
-                </div>
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#EAEFE8] text-[#334630]">
-                  {currentDaySpec.sheetsEstimateText}
+          <div className="md:col-span-7 flex flex-col gap-2 p-3.5 rounded-xl bg-white border border-[#C7D3C0] shadow-sm">
+            
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <span className="text-[10px] font-bold tracking-wide uppercase text-[#5A6B57]">
+                  Target Day {currentDaySpec.day} of 196 • {currentDaySpec.phaseTitle.split(':')[0]}
                 </span>
+                <h3 className="text-xl font-black text-[#243023] mt-0.5 leading-tight">
+                  {currentDaySpec.targetLabel.includes(':') 
+                    ? currentDaySpec.targetLabel.split(':')[1].trim() 
+                    : currentDaySpec.targetLabel}
+                </h3>
               </div>
-              <div className="text-lg font-bold text-[#243023] mt-0.5">
-                {currentDaySpec.targetLabel}
-              </div>
-              <div className="text-xs text-[#5A6B57] mt-0.5">
-                Block Range: {currentDaySpec.blockRangeText} (Day {currentDaySpec.dayInBlock} of{' '}
-                {currentDaySpec.totalDaysInBlock})
+              <div className="px-2.5 py-1.5 rounded-lg bg-[#EAEFE8] text-[#3A4B37] font-bold text-[10px] text-center whitespace-nowrap border border-[#C7D3C0]/50 shrink-0">
+                {currentDaySpec.sheetsEstimateText.split('(')[0].trim()}<br/>
+                <span className="font-normal opacity-80">({currentDaySpec.sheetsEstimateText.split('(')[1] || ''}</span>
               </div>
             </div>
 
-            {/* Target Pages Box */}
-            <div className="p-3 rounded-xl bg-white border border-[#C7D3C0] space-y-1">
-              <div className="flex flex-wrap items-center justify-between gap-1 text-xs">
-                <span className="font-bold text-[#243023]">
-                  Madinah Mushaf Pages:
-                </span>
-                <span className="font-mono font-bold text-[#3A4B37] text-sm">
-                  {currentDaySpec.pageRangeText}
-                </span>
-              </div>
-              <div className="text-[11px] text-[#5A6B57]">
-                {currentDaySpec.formulaNote}
-              </div>
+            <div className="px-3 py-2 rounded-lg bg-[#F7F4ED] border border-[#EAEFE8] flex items-center justify-between">
+              <span className="text-xs font-bold text-[#3A4B37]">Madinah Mushaf Pages:</span>
+              <span className="font-mono font-bold text-sm text-[#243023]">{currentDaySpec.pageRangeText}</span>
+            </div>
 
-              {currentDaySpec.pagesList && currentDaySpec.pagesList.length > 0 && (
-                <div className="pt-2 flex flex-wrap items-center gap-1">
-                  <span className="text-[10px] font-semibold text-[#6E7D6B] mr-1">
-                    Page List:
-                  </span>
+            {currentDaySpec.pagesList && currentDaySpec.pagesList.length > 0 && (
+              <div className="pt-1">
+                <div className="text-[10px] font-bold text-[#3A4B37] mb-1.5 px-1 uppercase tracking-wider">Page List:</div>
+                <div className="flex flex-wrap gap-1">
                   {currentDaySpec.pagesList.map((pageNum) => (
                     <span
                       key={pageNum}
-                      className="px-2 py-0.5 rounded-md bg-[#F7F4ED] border border-[#C7D3C0] text-[10px] font-mono font-semibold text-[#243023]"
+                      className="w-9 py-0.5 text-center rounded-md bg-[#F7F4ED] border border-[#C7D3C0]/50 font-mono text-[10px] font-bold text-[#243023]"
                     >
                       p.{pageNum}
                     </span>
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            <div className="flex items-center gap-2 shrink-0 pt-1">
+            <div className="flex gap-2 pt-1.5 mt-1 border-t border-[#C7D3C0]/30">
               <button
                 type="button"
                 onClick={() => onToggleDay(currentDaySpec.day)}
-                className={`flex-1 min-h-[44px] px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors whitespace-nowrap ${
+                className={`flex-1 min-h-[38px] px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors whitespace-nowrap ${
                   completedDays[currentDaySpec.day]
-                    ? 'bg-[#8FA28A] text-white'
-                    : 'bg-white text-[#243023] border border-[#C7D3C0] hover:bg-[#E8EFE5]'
+                    ? 'bg-[#8FA28A] text-white border-none'
+                    : 'bg-[#F7F4ED] text-[#243023] border border-[#C7D3C0] hover:bg-[#EAEFE8]'
                 }`}
               >
                 <Check className="w-4 h-4" />
                 <span>
                   {completedDays[currentDaySpec.day]
-                    ? `Day ${currentDaySpec.day} Completed`
+                    ? `Completed`
                     : `Mark Day ${currentDaySpec.day} Done`}
                 </span>
               </button>
@@ -227,21 +174,16 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
                 <button
                   type="button"
                   onClick={() => onSetActiveDay(activeDay - 1)}
-                  className="min-h-[44px] min-w-[44px] rounded-xl bg-white border border-[#C7D3C0] text-[#243023] flex items-center justify-center hover:bg-[#E8EFE5] transition-colors"
-                  title="Previous day"
-                  aria-label="Previous day"
+                  className="w-10 min-h-[38px] rounded-xl bg-[#F7F4ED] border border-[#C7D3C0] text-[#243023] flex items-center justify-center hover:bg-[#EAEFE8]"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
               )}
-
               {activeDay < 196 && (
                 <button
                   type="button"
                   onClick={() => onSetActiveDay(activeDay + 1)}
-                  className="min-h-[44px] min-w-[44px] rounded-xl bg-white border border-[#C7D3C0] text-[#243023] flex items-center justify-center hover:bg-[#E8EFE5] transition-colors"
-                  title="Next day"
-                  aria-label="Next day"
+                  className="w-10 min-h-[38px] rounded-xl bg-[#F7F4ED] border border-[#C7D3C0] text-[#243023] flex items-center justify-center hover:bg-[#EAEFE8]"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -250,14 +192,14 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
           </div>
 
           {/* Progress Summary */}
-          <div className="md:col-span-5 p-4 rounded-xl bg-[#F7F4ED] border border-[#C7D3C0] flex flex-col justify-between">
+          <div className="md:col-span-5 p-4 rounded-xl bg-[#F7F4ED] border border-[#C7D3C0] flex flex-col justify-between h-full">
             <div className="flex items-center justify-between text-xs">
               <span className="font-semibold text-[#3A4B37]">Overall Progress (196 Days)</span>
               <span className="font-mono font-bold text-[#243023] tabular-nums">
-                {totalCompleted} / 196 Days ({overallPercent}%)
+                {totalCompleted} / 196 ({overallPercent}%)
               </span>
             </div>
-            <div className="w-full h-2.5 bg-white rounded-full overflow-hidden my-2.5 border border-[#C7D3C0]/60">
+            <div className="w-full h-2.5 bg-white rounded-full overflow-hidden my-3 border border-[#C7D3C0]/60">
               <div
                 className="h-full bg-[#8FA28A] transition-all duration-200"
                 style={{ width: `${overallPercent}%` }}
@@ -265,7 +207,7 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
             </div>
             <div className="flex items-center justify-between text-[11px] text-[#5A6B57] tabular-nums">
               <span>{196 - totalCompleted} days remaining</span>
-              <span>Est. ~6.5 months</span>
+              <span>Est. ~{(196 - totalCompleted) / 30 > 0 ? ((196 - totalCompleted) / 30).toFixed(1) : 0} months</span>
             </div>
           </div>
         </div>
@@ -307,7 +249,7 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
         })}
       </div>
 
-      {/* 6 Phases Grid - Clean cards with page breakdown per block */}
+      {/* 6 Phases Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {visiblePhases.map((phase) => {
           const totalPhaseDays = phase.endDay - phase.startDay + 1;
@@ -323,7 +265,6 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
               className="bg-white/95 border border-[#C7D3C0] rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-xs"
             >
               <div>
-                {/* Phase Header */}
                 <div className="flex items-start justify-between gap-4 pb-3 border-b border-[#C7D3C0]/60">
                   <div>
                     <div className="text-xs text-[#5A6B57] font-mono tabular-nums">
@@ -341,7 +282,6 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
                   </div>
                 </div>
 
-                {/* Blocks inside Phase */}
                 <div className="mt-4 divide-y divide-[#C7D3C0]/50 border border-[#C7D3C0]/70 rounded-xl bg-[#F7F4ED]/60">
                   {phase.blocks.map((block) => {
                     const dayNumbers: number[] = [];
@@ -354,7 +294,6 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
                         ? `Day ${block.startDay}`
                         : `Day ${block.startDay} - ${block.endDay}`;
 
-                    // Sample day entry to get page estimate for this block
                     const sampleDay = ALL_196_MUROJAAH_DAYS.find((d) => d.day === block.startDay);
 
                     return (
@@ -398,7 +337,6 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
                           </button>
                         </div>
 
-                        {/* Clickable Day Numbers Strip */}
                         <div className="flex flex-wrap gap-1.5 pt-1">
                           {dayNumbers.map((d) => {
                             const isDComplete = Boolean(completedDays[d]);
@@ -437,12 +375,14 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
         })}
       </div>
 
-      {/* Mushaf Page Guide & 30 Juz Modal */}
       <MushafPageGuideModal
         isOpen={showPageGuideModal}
         onClose={() => setShowPageGuideModal(false)}
         activeDay={activeDay}
-        onSelectDay={onSetActiveDay}
+        onSelectDay={(day) => {
+          onSetActiveDay(day);
+          setShowPageGuideModal(false);
+        }}
       />
     </div>
   );
