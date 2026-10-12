@@ -200,41 +200,45 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
           {/* TAB 2: ACTIVE DAY BREAKDOWN */}
           {activeTab === 'today' && (
             <div className="space-y-4 text-xs">
-              <div className="p-4 rounded-xl bg-white border border-[#C7D3C0] space-y-3">
-                <div className="flex items-center justify-between">
+              <div className="p-3.5 rounded-xl bg-white border border-[#C7D3C0] space-y-2.5">
+                
+                {/* Header Info */}
+                <div className="flex items-start justify-between gap-2">
                   <div>
-                    <span className="text-[11px] text-[#5A6B57] font-mono">
-                      Milestone Day {currentDaySpec.day} of 196
+                    <span className="text-[10px] text-[#5A6B57] font-medium tracking-wide uppercase">
+                      Target Day {currentDaySpec.day} of 196 • {currentDaySpec.targetLabel.split(':')[0]}
                     </span>
-                    <h4 className="text-base font-bold text-[#243023] mt-0.5">
-                      {currentDaySpec.targetLabel}
+                    <h4 className="text-lg font-bold text-[#243023] leading-tight">
+                      {currentDaySpec.targetLabel.includes(':') ? currentDaySpec.targetLabel.split(':')[1] : currentDaySpec.targetLabel}
                     </h4>
                   </div>
-                  <span className="px-2.5 py-1 rounded-lg bg-[#EAEFE8] text-[#243023] font-semibold text-xs">
+                  <span className="px-2 py-1 rounded-md bg-[#EAEFE8] text-[#3A4B37] font-semibold text-[10px] shrink-0 text-right">
                     {currentDaySpec.sheetsEstimateText}
                   </span>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-[#F7F4ED] border border-[#C7D3C0] space-y-1.5">
-                  <div className="text-[11px] text-[#5A6B57]">Madinah Mushaf Pages:</div>
-                  <div className="text-xl font-extrabold font-mono text-[#243023]">
-                    {currentDaySpec.pageRangeText}
-                  </div>
-                  <div className="text-[11px] text-[#5A6B57] leading-relaxed">
-                    {currentDaySpec.formulaNote}
-                  </div>
+                {/* Main Block Range */}
+                <div className="px-3 py-2 rounded-lg bg-[#F7F4ED] border border-[#EAEFE8] flex items-center justify-between">
+                  <span className="text-[#3A4B37] font-medium">Madinah Mushaf Pages:</span>
+                  <span className="font-mono font-bold text-sm text-[#243023]">{currentDaySpec.pageRangeText}</span>
                 </div>
 
+                {/* Detail Text */}
+                {currentDaySpec.formulaNote && (
+                  <div className="text-[10px] text-[#5A6B57] leading-snug px-1">
+                    {currentDaySpec.formulaNote}
+                  </div>
+                )}
+
+                {/* Pages Checklist */}
                 {currentDaySpec.pagesList && currentDaySpec.pagesList.length > 0 && (
-                  <div className="space-y-1.5 pt-1">
-                    <div className="text-[11px] font-bold text-[#243023]">
-                      Checklist Pages to Open Today:
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
+                  <div className="pt-1.5">
+                    <div className="text-[10px] font-bold text-[#243023] mb-1.5 px-1">Page List:</div>
+                    <div className="flex flex-wrap gap-1">
                       {currentDaySpec.pagesList.map((pageNum) => (
                         <span
                           key={pageNum}
-                          className="px-2.5 py-1 rounded-md bg-[#F7F4ED] border border-[#C7D3C0] font-mono font-semibold text-[#243023]"
+                          className="w-10 py-0.5 text-center rounded bg-white border border-[#C7D3C0] font-mono text-[10px] font-medium text-[#3A4B37]"
                         >
                           p.{pageNum}
                         </span>
