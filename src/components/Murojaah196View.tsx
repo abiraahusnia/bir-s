@@ -56,14 +56,14 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
                 Status: {isProgramStarted ? `Active on Day ${activeDay}` : 'Ready to Begin'}
               </span>
             </div>
-            {/* Exactly as requested: Peta Murojaah */}
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#243023]">
-              Peta Murojaah
-            </h2>
-            {/* Subtitle: bismillah mutqin */}
-            <p className="text-sm font-semibold text-[#4A5D46] flex items-center gap-2">
-              <span>bismillah mutqin</span>
-              <span className="font-arabic text-base text-[#3A4B37]">بسم الله متقن</span>
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#243023]">
+                Murojaah Roadmap
+              </h2>
+              <span className="font-arabic text-lg text-[#3A4B37] font-medium">خريطة المراجعة</span>
+            </div>
+            <p className="text-xs text-[#5A6B57]">
+              196-Day structured retention program across 6 phases with precise Madinah Mushaf page milestones.
             </p>
           </div>
 
@@ -73,10 +73,10 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
               type="button"
               onClick={() => setShowPageGuideModal(true)}
               className="min-h-[44px] px-3.5 rounded-xl text-xs font-semibold bg-[#EAEFE8] text-[#243023] hover:bg-[#DCE5D8] transition-colors flex items-center gap-1.5"
-              title="Panduan rumus halaman & tabel 30 Juz Mushaf Madinah"
+              title="Madinah Mushaf page guide & 30 Juz table"
             >
               <BookOpen className="w-4 h-4 text-[#8FA28A]" />
-              <span>Panduan Halaman &amp; Tabel 30 Juz</span>
+              <span>Mushaf Page Guide &amp; 30 Juz Table</span>
             </button>
 
             <button
@@ -111,14 +111,14 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
           </div>
         </div>
 
-        {/* EXPLANATION ACCORDION: BAGAIMANA CARA TAHU TARGET HALAMAN & LEMBAR */}
+        {/* EXPLANATION ACCORDION: HOW TO CALCULATE TARGET PAGES & SHEETS */}
         {showPageGuide && (
           <div className="mt-5 p-4 rounded-xl bg-white border border-[#C7D3C0] space-y-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-[#8FA28A]" />
                 <h4 className="text-xs font-bold text-[#243023]">
-                  Cara Mengetahui Target Berapa Halaman &amp; Lembar dalam 1 Juz:
+                  How to Calculate Daily Pages &amp; Sheets in 1 Juz:
                 </h4>
               </div>
               <button
@@ -126,28 +126,28 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
                 onClick={() => setShowPageGuide(false)}
                 className="text-[11px] text-[#6E7D6B] hover:text-[#243023]"
               >
-                Tutup Panduan
+                Close Guide
               </button>
             </div>
             <p className="text-xs text-[#5A6B57] leading-relaxed">
-              Standar <strong>Mushaf Madinah (15 baris per halaman)</strong> memiliki tepat <strong>20 halaman per Juz (10 lembar bolak-balik)</strong>, kecuali Juz 30 (23 hal) dan Juz 1 (21 hal).
-              Sistem aplikasi ini sudah <em>otomatis menghitungkan</em> halaman dan lembar harian Anda:
+              The standard <strong>Madinah Mushaf (15 lines per page)</strong> contains exactly <strong>20 pages per Juz (10 double-sided sheets)</strong>, except Juz 30 (23 pages) and Juz 1 (21 pages).
+              The system automatically calculates your daily milestones:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-[11px]">
               <div className="p-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1">
-                <div className="font-bold text-[#243023]">Juz 28 (Alokasi 2 Hari)</div>
-                <div className="text-[#3A4B37]">20 hal ÷ 2 = <strong>10 halaman/hari (~5 lembar)</strong></div>
-                <div className="text-[10px] text-[#6E7D6B]">Hari 3: Hal. 542–551 · Hari 4: Hal. 552–561</div>
+                <div className="font-bold text-[#243023]">Juz 28 (2-Day Allocation)</div>
+                <div className="text-[#3A4B37]">20 pages ÷ 2 = <strong>10 pages/day (~5 sheets)</strong></div>
+                <div className="text-[10px] text-[#6E7D6B]">Day 3: p. 542–551 · Day 4: p. 552–561</div>
               </div>
               <div className="p-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1">
-                <div className="font-bold text-[#243023]">Juz 2 (Alokasi 4 Hari)</div>
-                <div className="text-[#3A4B37]">20 hal ÷ 4 = <strong>5 halaman/hari (~2,5 lembar)</strong></div>
-                <div className="text-[10px] text-[#6E7D6B]">Tiap hari cukup murojaah 5 halaman tenang</div>
+                <div className="font-bold text-[#243023]">Juz 2 (4-Day Allocation)</div>
+                <div className="text-[#3A4B37]">20 pages ÷ 4 = <strong>5 pages/day (~2.5 sheets)</strong></div>
+                <div className="text-[10px] text-[#6E7D6B]">Pace yourself with 5 calm pages daily</div>
               </div>
               <div className="p-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1">
-                <div className="font-bold text-[#243023]">Juz 21 (Alokasi 10 Hari)</div>
-                <div className="text-[#3A4B37]">20 hal ÷ 10 = <strong>2 halaman/hari (1 lembar)</strong></div>
-                <div className="text-[10px] text-[#6E7D6B]">Sangat ringan, 1 lembar bolak-balik per hari mutqin</div>
+                <div className="font-bold text-[#243023]">Juz 21 (10-Day Allocation)</div>
+                <div className="text-[#3A4B37]">20 pages ÷ 10 = <strong>2 pages/day (1 sheet)</strong></div>
+                <div className="text-[10px] text-[#6E7D6B]">Lightweight, 1 double-sided sheet per day</div>
               </div>
             </div>
           </div>
@@ -178,7 +178,7 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
             <div className="p-3 rounded-xl bg-white border border-[#C7D3C0] space-y-1">
               <div className="flex flex-wrap items-center justify-between gap-1 text-xs">
                 <span className="font-bold text-[#243023]">
-                  Halaman Mushaf Madinah:
+                  Madinah Mushaf Pages:
                 </span>
                 <span className="font-mono font-bold text-[#3A4B37] text-sm">
                   {currentDaySpec.pageRangeText}
@@ -191,7 +191,7 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
               {currentDaySpec.pagesList && currentDaySpec.pagesList.length > 0 && (
                 <div className="pt-2 flex flex-wrap items-center gap-1">
                   <span className="text-[10px] font-semibold text-[#6E7D6B] mr-1">
-                    Checklist Hal:
+                    Page List:
                   </span>
                   {currentDaySpec.pagesList.map((pageNum) => (
                     <span

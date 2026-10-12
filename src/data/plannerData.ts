@@ -12,6 +12,15 @@ export interface DayInfo {
 
 export const DAYS_OF_WEEK: DayInfo[] = [
   {
+    key: 'minggu',
+    label: 'Sunday',
+    arabicLabel: 'الأحد',
+    short: 'Sun',
+    isFlexibleMorning: true,
+    isFlexibleEvening: false,
+    summaryNote: 'Morning flexible (No morning halaqah) · Evening Halaqah 18:00–21:00 active again',
+  },
+  {
     key: 'senin',
     label: 'Monday',
     arabicLabel: 'الإثنين',
@@ -65,15 +74,6 @@ export const DAYS_OF_WEEK: DayInfo[] = [
     isFlexibleEvening: true,
     summaryNote: 'Morning Halaqah active · After 06:30 flexible (No evening halaqah) · Marriage & Parenting podcast',
   },
-  {
-    key: 'minggu',
-    label: 'Sunday',
-    arabicLabel: 'الأحد',
-    short: 'Sun',
-    isFlexibleMorning: true,
-    isFlexibleEvening: false,
-    summaryNote: 'Morning flexible (No morning halaqah) · Evening Halaqah 18:00–21:00 active again',
-  },
 ];
 
 export interface ScheduleSlot {
@@ -103,11 +103,11 @@ export function getDailyScheduleForDay(day: DayKey): ScheduleSlot[] {
     {
       id: `${day}-2`,
       timeRange: '04:30 – 04:55',
-      title: 'Fajr Sunnah Prayer, Fajr & Morning Adhkar',
+      title: 'Fajr Sunnah Prayer, Fajr & Morning Dzikr',
       arabicTitle: 'سنة الفجر، صلاة الصبح وأذكار الصباح',
       subtitle: isJumat
-        ? '2 rak’ahs before Fajr, on-time Fajr prayer, Morning Adhkar & start Surah Al-Kahfi'
-        : '2 rak’ahs before Fajr, on-time Fajr prayer & Morning Adhkar',
+        ? '2 rak’ahs before Fajr, on-time Fajr prayer, Morning Dzikr & start Surah Al-Kahfi'
+        : '2 rak’ahs before Fajr, on-time Fajr prayer & Morning Dzikr',
       category: 'ibadah',
     },
   ];
@@ -137,10 +137,10 @@ export function getDailyScheduleForDay(day: DayKey): ScheduleSlot[] {
       {
         id: `${day}-3`,
         timeRange: '04:55 – 05:15',
-        title: 'Prep & Commute to Teaching Location',
-        arabicTitle: 'الانطلاق إلى حلقة القرآن',
-        subtitle: 'Commute from home to halaqah venue (±15–20 mins) with quiet murojaah on the way',
-        category: 'perjalanan',
+        title: 'Morning Halaqah Prep & Review',
+        arabicTitle: 'الاستعداد لحلقة القرآن',
+        subtitle: 'Review student notes, recitation materials & quiet murojaah before halaqah',
+        category: 'halaqah',
       },
       {
         id: `${day}-4`,
@@ -152,16 +152,8 @@ export function getDailyScheduleForDay(day: DayKey): ScheduleSlot[] {
         isFixedHalaqah: true,
       },
       {
-        id: `${day}-5`,
-        timeRange: '06:30 – 06:50',
-        title: 'Commute Back Home',
-        arabicTitle: 'العودة إلى المنزل',
-        subtitle: 'Heading home from teaching (±15–20 mins)',
-        category: 'perjalanan',
-      },
-      {
         id: `${day}-6`,
-        timeRange: '06:50 – 08:00',
+        timeRange: '06:30 – 08:00',
         title: 'Light Workout, Dhuha Prayer & Breakfast',
         arabicTitle: 'رياضة خفيفة، الضحى والإفطار',
         subtitle: '15–20 mins stretching, Dhuha prayer & relaxed breakfast at home',
@@ -208,9 +200,9 @@ export function getDailyScheduleForDay(day: DayKey): ScheduleSlot[] {
       {
         id: `${day}-10`,
         timeRange: '17:30 – 18:30',
-        title: 'Maghrib Prayer & Evening Adhkar',
+        title: 'Maghrib Prayer & Evening Dzikr',
         arabicTitle: 'صلاة المغرب وأذكار المساء',
-        subtitle: 'Maghrib prayer + 2 rak’ahs Ba’diyah Rawatib and evening adhkar at home',
+        subtitle: 'Maghrib prayer + 2 rak’ahs Ba’diyah Rawatib and evening dzikr at home',
         category: 'ibadah',
       },
       {
@@ -273,19 +265,11 @@ export function getDailyScheduleForDay(day: DayKey): ScheduleSlot[] {
       },
       {
         id: `${day}-11`,
-        timeRange: '15:30 – 17:40',
-        title: 'Asr Prayer, Evening Adhkar & Halaqah Prep',
+        timeRange: '15:30 – 18:00',
+        title: 'Asr Prayer, Evening Dzikr & Halaqah Prep',
         arabicTitle: 'صلاة العصر وأذكار المساء',
-        subtitle: 'On-time Asr prayer, Evening Adhkar and packing teaching kit',
+        subtitle: 'On-time Asr prayer, Evening Dzikr, lesson prep & halaqah readiness',
         category: 'ibadah',
-      },
-      {
-        id: `${day}-12`,
-        timeRange: '17:40 – 18:00',
-        title: 'Commute to Evening Halaqah',
-        arabicTitle: 'الانطلاق إلى حلقة المساء',
-        subtitle: 'Commute from home to halaqah venue (±15–20 mins)',
-        category: 'perjalanan',
       },
       {
         id: `${day}-13`,
@@ -295,14 +279,6 @@ export function getDailyScheduleForDay(day: DayKey): ScheduleSlot[] {
         subtitle: 'Teaching evening halaqah, Maghrib & Isha prayers with rawatib (Fixed Schedule)',
         category: 'halaqah',
         isFixedHalaqah: true,
-      },
-      {
-        id: `${day}-14`,
-        timeRange: '21:00 – 21:20',
-        title: 'Commute Back Home',
-        arabicTitle: 'العودة إلى المنزل',
-        subtitle: 'Heading home from teaching (±15–20 mins)',
-        category: 'perjalanan',
       }
     );
   }
@@ -311,10 +287,10 @@ export function getDailyScheduleForDay(day: DayKey): ScheduleSlot[] {
   slots.push(
     {
       id: `${day}-night-1`,
-      timeRange: '21:20 – 22:00',
+      timeRange: '21:00 – 22:00',
       title: 'Night Muhasabah & Tomorrow’s Prep',
       arabicTitle: 'محاسبة النفس والاستعداد',
-      subtitle: 'Review mutabaah checklist, closing istighfar, wudhu & sunnah sleep adhkar',
+      subtitle: 'Review mutabaah checklist, closing istighfar, wudhu & sunnah sleep dzikr',
       category: 'ibadah',
     },
     {
@@ -336,7 +312,7 @@ export interface MutabaahItem {
   arabicTitle: string;
   targetText: string;
   timeHint: string;
-  group: 'Prayers & Qiyam' | 'Quran' | 'Adhkar & Deeds' | 'Wellness & Habits';
+  group: 'Prayers & Qiyam' | 'Quran' | 'Dzikr & Deeds' | 'Wellness & Habits';
   isExemptDuringHaidh?: boolean;
 }
 
@@ -415,12 +391,12 @@ export const MUTABAAH_ITEMS: MutabaahItem[] = [
   },
   {
     id: 'mengaji_1_juz',
-    title: 'Daily Tilawah (1 Juz)',
+    title: 'Daily Tilawah (1 Juz+)',
     arabicTitle: 'تلاوة جزء من القرآن',
-    targetText: 'Target 1 Juz every day',
+    targetText: 'Target min 1 Juz (>= 20 pages)',
     timeHint: '08:00 – 09:00',
     group: 'Quran',
-    isExemptDuringHaidh: false,
+    isExemptDuringHaidh: true,
   },
   {
     id: 'murojaah',
@@ -433,20 +409,20 @@ export const MUTABAAH_ITEMS: MutabaahItem[] = [
   },
   {
     id: 'dzikir_pagi',
-    title: 'Morning Adhkar',
+    title: 'Morning Dzikr',
     arabicTitle: 'أذكار الصباح',
     targetText: 'After Fajr or during morning commute',
     timeHint: '04:45 – 05:15',
-    group: 'Adhkar & Deeds',
+    group: 'Dzikr & Deeds',
     isExemptDuringHaidh: false,
   },
   {
     id: 'dzikir_petang',
-    title: 'Evening Adhkar',
+    title: 'Evening Dzikr',
     arabicTitle: 'أذكار المساء',
     targetText: 'After Asr prayer',
     timeHint: '15:30 – 16:00',
-    group: 'Adhkar & Deeds',
+    group: 'Dzikr & Deeds',
     isExemptDuringHaidh: false,
   },
   {
@@ -455,7 +431,7 @@ export const MUTABAAH_ITEMS: MutabaahItem[] = [
     arabicTitle: 'الاستغفار اليومي (١٠٠ مرة)',
     targetText: 'At least 100x a day',
     timeHint: 'Throughout the day',
-    group: 'Adhkar & Deeds',
+    group: 'Dzikr & Deeds',
     isExemptDuringHaidh: false,
   },
   {
@@ -464,7 +440,7 @@ export const MUTABAAH_ITEMS: MutabaahItem[] = [
     arabicTitle: 'الصدقة والإنفاق',
     targetText: 'Consistent daily giving',
     timeHint: 'Morning time',
-    group: 'Adhkar & Deeds',
+    group: 'Dzikr & Deeds',
     isExemptDuringHaidh: false,
   },
   {
@@ -473,7 +449,7 @@ export const MUTABAAH_ITEMS: MutabaahItem[] = [
     arabicTitle: 'صيام التطوع',
     targetText: 'Mon & Thu / Ayyamul Bidh',
     timeHint: 'Fajr – Maghrib',
-    group: 'Adhkar & Deeds',
+    group: 'Dzikr & Deeds',
     isExemptDuringHaidh: true,
   },
   {
@@ -624,6 +600,13 @@ export const MUROJAAH_PHASES: MurojaahPhaseSpec[] = [
     ],
   },
 ];
+
+export interface DailyTilawahRecord {
+  juz: number;
+  startPage: number;
+  endPage: number;
+  totalPages: number;
+}
 
 export interface JuzPageSpec {
   juz: number;
@@ -1261,11 +1244,11 @@ export const INITIAL_BUDGET_ALLOCATIONS: BudgetAllocationItem[] = [
   },
   {
     id: 'pos-bensin',
-    name: 'Fuel & Commute (OTW Halaqah)',
+    name: 'Fuel & Transportation',
     categoryType: 'operasional',
     amount: 250000,
     percentage: 12.5,
-    description: 'Fuel & motorcycle maintenance for teaching halaqah twice daily (15–20 mins commute).',
+    description: 'Fuel & motorcycle maintenance for teaching halaqah sessions and daily mobility.',
     isTransferredThisMonth: true,
   },
   {
@@ -1309,7 +1292,7 @@ export const INITIAL_EXPENSES: ExpenseRecord[] = [
   {
     id: 'exp-1',
     date: 'Week 1',
-    title: 'Full Tank Fuel (OTW Morning & Evening Halaqah)',
+    title: 'Full Tank Fuel & Transportation',
     category: 'Fuel & Commute',
     amount: 60000,
   },

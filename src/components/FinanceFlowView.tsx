@@ -4,13 +4,11 @@ import {
   Plus,
   Trash2,
   Edit2,
-  Wallet,
+  Calendar,
+  SlidersHorizontal,
+  X,
   ArrowDownLeft,
   ArrowUpRight,
-  TrendingUp,
-  RotateCcw,
-  Sliders,
-  Calendar,
 } from 'lucide-react';
 import {
   BudgetAllocationItem,
@@ -33,6 +31,14 @@ interface FinanceFlowViewProps {
   onDeleteIncome: (id: string) => void;
   allocations: BudgetAllocationItem[];
   onUpdateAllocationAmount: (id: string, newAmount: number) => void;
+  onUpdateAllocation?: (updated: BudgetAllocationItem) => void;
+  onAddAllocation?: (
+    name: string,
+    amount: number,
+    categoryType: BudgetAllocationItem['categoryType'],
+    description: string
+  ) => void;
+  onDeleteAllocation?: (id: string) => void;
   onToggleAllocationTransferred: (id: string) => void;
   expenses: ExpenseRecord[];
   onAddExpense: (
@@ -52,21 +58,22 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
   onDeleteIncome,
   allocations,
   onUpdateAllocationAmount,
+  onUpdateAllocation,
+  onAddAllocation,
+  onDeleteAllocation,
   onToggleAllocationTransferred,
   expenses,
   onAddExpense,
   onUpdateExpense,
   onDeleteExpense,
 }) => {
-  const [projectionYears, setProjectionYears] = useState<number>(2);
-
-  // Real-time month or selectable month
+  // Real-time month display
   const currentMonthName = new Intl.DateTimeFormat('en-US', {
     month: 'long',
     year: 'numeric',
   }).format(new Date());
 
-  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthName);
+  const [selectedMonth] = useState<string>(currentMonthName);
 
   // Income form state
   const [showIncomeForm, setShowIncomeForm] = useState(false);
@@ -96,15 +103,30 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
   const [editExpCategory, setEditExpCategory] = useState<ExpenseRecord['category']>('Fuel & Commute');
   const [editExpAmount, setEditExpAmount] = useState('');
 
-  // Totals & Balance
-  const totalIncome = incomes.reduce((sum, item) => sum + item.amount, 0);
-  const totalExpense = expenses.reduce((sum, item) => sum + item.amount, 0);
-  const currentBalance = totalIncome - totalExpense;
+  // Allocation filter & editing state
+  const [allocationCategoryFilter, setAllocationCategoryFilter] = useState<'all' | 'tabungan' | 'bakti' | 'operasional'>('all');
+  const [editingAllocationId, setEditingAllocationId] = useState<string | null>(null);
+  const [editAllocName, setEditAllocName] = useState('');
+  const [editAllocAmount, setEditAllocAmount] = useState('');
+  const [editAllocCategory, setEditAllocCategory] = useState<BudgetAllocationItem['categoryType']>('tabungan');
+  const [editAllocDesc, setEditAllocDesc] = useState('');
 
-  const hajiAlloc = allocations.find((a) => a.id === 'pos-haji')?.amount || 250000;
-  const masaDepanAlloc = allocations.find((a) => a.id === 'pos-masadepan')?.amount || 400000;
-  const ortuAlloc = allocations.find((a) => a.id === 'pos-ortu')?.amount || 300000;
+  // Add new allocation form state
+  const [showAddAllocForm, setShowAddAllocForm] = useState(false);
+  const [newAllocName, setNewAllocName] = useState('');
+  const [newAllocAmount, setNewAllocAmount] = useState('');
+  const [newAllocCategory, setNewAllocCategory] = useState<BudgetAllocationItem['categoryType']>('tabungan');
+  const [newAllocDesc, setNewAllocDesc] = useState('');
 
+  // Financial aggregates
+  const totalIncome = incomes.reduce((acc, curr) => acc + curr.amount, 0);
+  const totalAllocated = allocations.reduce((acc, curr) => acc + curr.amount, 0);
+  const totalExpense = expenses.reduce((acc, curr) => acc + curr.amount, 0);
+
+  // Dynamic Available Balance
+  const currentBalance = totalIncome - totalAllocated - totalExpense;
+
+  // Income Handlers
   const handleCreateIncome = (e: React.FormEvent) => {
     e.preventDefault();
     const num = Number(incAmount.replace(/[^0-9]/g, ''));
@@ -119,7 +141,8 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
     setIncTitle('Monthly Salary');
     setIncSourceType('Salary');
     setIncCustomDesc('');
-    setIncAmount('');
+    setIncAmount('2000000');
+    setIncDate('This Month');
     setShowIncomeForm(false);
   };
 
@@ -139,12 +162,13 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
       date: 'Updated',
       title: editIncTitle.trim(),
       sourceType: editIncSourceType,
-      customDescription: editIncSourceType === 'Other' ? editIncCustomDesc.trim() : undefined,
       amount: num,
+      customDescription: editIncSourceType === 'Other' ? editIncCustomDesc.trim() : undefined,
     });
     setEditingIncomeId(null);
   };
 
+  // Expense Handlers
   const handleCreateExpense = (e: React.FormEvent) => {
     e.preventDefault();
     const num = Number(expAmount.replace(/[^0-9]/g, ''));
@@ -152,6 +176,7 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
     onAddExpense(expTitle.trim(), expCategory, num, expDate.trim() || 'Today');
     setExpTitle('');
     setExpAmount('');
+    setExpDate('Today');
     setShowExpenseForm(false);
   };
 
@@ -175,13 +200,57 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
     setEditingExpenseId(null);
   };
 
-  const monthsCount = projectionYears * 12;
-  const projectedHaji = hajiAlloc * monthsCount;
-  const projectedMasaDepan = masaDepanAlloc * monthsCount;
+  // Allocation Editing Handlers
+  const handleStartEditAllocation = (item: BudgetAllocationItem) => {
+    setEditingAllocationId(item.id);
+    setEditAllocName(item.name);
+    setEditAllocAmount(item.amount.toString());
+    setEditAllocCategory(item.categoryType);
+    setEditAllocDesc(item.description);
+  };
+
+  const handleSaveEditAllocation = (id: string) => {
+    const num = Number(editAllocAmount.replace(/[^0-9]/g, ''));
+    if (!editAllocName.trim() || isNaN(num) || num < 0) return;
+    if (onUpdateAllocation) {
+      const existing = allocations.find((a) => a.id === id);
+      if (existing) {
+        onUpdateAllocation({
+          ...existing,
+          name: editAllocName.trim(),
+          amount: num,
+          categoryType: editAllocCategory,
+          description: editAllocDesc.trim(),
+          percentage: totalIncome > 0 ? Math.round((num / totalIncome) * 100) : 0,
+        });
+      }
+    } else {
+      onUpdateAllocationAmount(id, num);
+    }
+    setEditingAllocationId(null);
+  };
+
+  const handleCreateNewAllocation = (e: React.FormEvent) => {
+    e.preventDefault();
+    const num = Number(newAllocAmount.replace(/[^0-9]/g, ''));
+    if (!newAllocName.trim() || isNaN(num) || num < 0) return;
+    if (onAddAllocation) {
+      onAddAllocation(newAllocName.trim(), num, newAllocCategory, newAllocDesc.trim());
+    }
+    setNewAllocName('');
+    setNewAllocAmount('');
+    setNewAllocDesc('');
+    setShowAddAllocForm(false);
+  };
+
+  const filteredAllocations = allocations.filter((item) => {
+    if (allocationCategoryFilter === 'all') return true;
+    return item.categoryType === allocationCategoryFilter;
+  });
 
   return (
     <div className="space-y-8">
-      {/* 1. HERO CARD: MONTH DISPLAYED ABOVE THE LARGEST UPDATED BALANCE */}
+      {/* 1. HERO CARD: MONTH DISPLAYED DIRECTLY ABOVE SALDO */}
       <section className="bg-white/95 border border-[#C7D3C0] rounded-2xl p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
@@ -192,15 +261,18 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                 {selectedMonth}
               </span>
               <span className="text-xs text-[#5A6B57]">
-                · Living with parents (food &amp; housing safe, Alhamdulillah!)
+                · Living with parents (food &amp; housing covered, Alhamdulillah!)
               </span>
             </div>
 
-            <div className="text-xs font-semibold text-[#5A6B57] uppercase tracking-wide">
-              Current Available Balance
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-[#5A6B57] uppercase tracking-wide">
+                Available Net Balance
+              </span>
+              <span className="font-arabic text-xs text-[#5A6B57]">الرصيد المتاح</span>
             </div>
 
-            {/* THE LARGEST TEXT ON TOP: SALDO UPDATE */}
+            {/* LARGEST TEXT ON TOP: SALDO UPDATE */}
             <div
               className={`text-4xl sm:text-5xl lg:text-6xl font-extrabold font-mono tracking-tight tabular-nums ${
                 currentBalance < 0 ? 'text-red-700' : 'text-[#243023]'
@@ -209,18 +281,26 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
               {formatRupiah(currentBalance)}
             </div>
 
+            {/* Real-time Dynamic Financial Breakdown */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-[#5A6B57] pt-1">
               <span>
-                Total Income:{' '}
-                <strong className="font-mono text-[#3A4B37] font-semibold">
-                  {formatRupiah(totalIncome)}
+                Income:{' '}
+                <strong className="font-mono text-[#2E4729] font-semibold">
+                  +{formatRupiah(totalIncome)}
                 </strong>
               </span>
               <span aria-hidden="true">·</span>
               <span>
-                Total Spent:{' '}
+                Allocated &amp; Savings:{' '}
+                <strong className="font-mono text-[#3A4B37] font-semibold">
+                  -{formatRupiah(totalAllocated)}
+                </strong>
+              </span>
+              <span aria-hidden="true">·</span>
+              <span>
+                Actual Expenses:{' '}
                 <strong className="font-mono text-[#6E7D6B] font-semibold">
-                  {formatRupiah(totalExpense)}
+                  -{formatRupiah(totalExpense)}
                 </strong>
               </span>
             </div>
@@ -261,7 +341,7 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
             className="mt-6 pt-6 border-t border-[#C7D3C0]/60 p-4 rounded-xl bg-[#F7F4ED] space-y-4"
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-[#243023]">Add Income</h3>
+              <h3 className="text-sm font-semibold text-[#243023]">Add New Income (الدخل)</h3>
               <button
                 type="button"
                 onClick={() => setShowIncomeForm(false)}
@@ -272,10 +352,10 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {/* Income Type: ONLY Salary & Other */}
+              {/* Category: Salary vs Other */}
               <div>
                 <label className="block text-xs font-medium text-[#5A6B57] mb-1">
-                  Income Category
+                  Source Category
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -312,7 +392,7 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
               {/* Title / Description */}
               <div>
                 <label className="block text-xs font-medium text-[#5A6B57] mb-1">
-                  {incSourceType === 'Salary' ? 'Title' : 'Source / Description'}
+                  {incSourceType === 'Salary' ? 'Title' : 'Source Description (Custom)'}
                 </label>
                 <input
                   type="text"
@@ -320,8 +400,8 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                   onChange={(e) => setIncTitle(e.target.value)}
                   placeholder={
                     incSourceType === 'Salary'
-                      ? 'e.g., Monthly Salary'
-                      : 'e.g., Honorarium, Teaching bonus, Family gift'
+                      ? 'e.g., Monthly Quran Teaching Salary'
+                      : 'e.g., Honorarium, Guest Session, Gift, Bonus'
                   }
                   required
                   className="w-full bg-white border border-[#C7D3C0] rounded-xl px-3 min-h-[40px] text-xs text-[#243023] focus:outline-none focus:border-[#8FA28A]"
@@ -346,13 +426,13 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
               {/* Date */}
               <div>
                 <label className="block text-xs font-medium text-[#5A6B57] mb-1">
-                  Date / Note
+                  Date / Period
                 </label>
                 <input
                   type="text"
                   value={incDate}
                   onChange={(e) => setIncDate(e.target.value)}
-                  placeholder="e.g., Early Month"
+                  placeholder="e.g., Start of Month"
                   className="w-full bg-white border border-[#C7D3C0] rounded-xl px-3 min-h-[40px] text-xs text-[#243023] focus:outline-none focus:border-[#8FA28A]"
                 />
               </div>
@@ -362,13 +442,13 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
             {incSourceType === 'Other' && (
               <div>
                 <label className="block text-xs font-medium text-[#5A6B57] mb-1">
-                  Manual Note / What is this for?
+                  Custom Notes Regarding this Source
                 </label>
                 <input
                   type="text"
                   value={incCustomDesc}
                   onChange={(e) => setIncCustomDesc(e.target.value)}
-                  placeholder="e.g., Extra halaqah substitution, side project, gift from aunt"
+                  placeholder="e.g., Replacement halaqah 2 sessions, gift from relatives, etc."
                   className="w-full bg-white border border-[#C7D3C0] rounded-xl px-3 min-h-[40px] text-xs text-[#243023] focus:outline-none focus:border-[#8FA28A]"
                 />
               </div>
@@ -392,7 +472,7 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
             className="mt-6 pt-6 border-t border-[#C7D3C0]/60 p-4 rounded-xl bg-[#F7F4ED] space-y-4"
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-[#243023]">Record New Expense</h3>
+              <h3 className="text-sm font-semibold text-[#243023]">Record New Expense (المصروفات)</h3>
               <button
                 type="button"
                 onClick={() => setShowExpenseForm(false)}
@@ -412,11 +492,11 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                   }
                   className="w-full bg-white border border-[#C7D3C0] rounded-xl px-3 min-h-[40px] text-xs text-[#243023] focus:outline-none focus:border-[#8FA28A]"
                 >
-                  <option value="Fuel & Commute">Fuel &amp; Commute</option>
+                  <option value="Fuel & Commute">Fuel &amp; Transportation</option>
                   <option value="Infaq & Internet">Infaq &amp; Internet</option>
                   <option value="Friends & Hangout">Friends &amp; Hangouts</option>
                   <option value="Personal & Shopping">Personal &amp; Shopping</option>
-                  <option value="Unexpected">Unexpected / Lain-lain</option>
+                  <option value="Unexpected">Unexpected / Miscellaneous</option>
                 </select>
               </div>
 
@@ -428,7 +508,7 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                   type="text"
                   value={expTitle}
                   onChange={(e) => setExpTitle(e.target.value)}
-                  placeholder="e.g., Refuel bike tank, coffee with friends"
+                  placeholder="e.g., Full tank fuel, books, coffee"
                   required
                   className="w-full bg-white border border-[#C7D3C0] rounded-xl px-3 min-h-[40px] text-xs text-[#243023] focus:outline-none focus:border-[#8FA28A]"
                 />
@@ -450,7 +530,7 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
 
               <div>
                 <label className="block text-xs font-medium text-[#5A6B57] mb-1">
-                  Date / When
+                  Date / Period
                 </label>
                 <input
                   type="text"
@@ -474,203 +554,334 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
         )}
       </section>
 
-      {/* 2. SAVINGS & ALLOCATIONS WITH FLEXIBLE RANGES */}
-      <section className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      {/* 2. UNIFIED MONTHLY BUDGET ALLOCATIONS & SAVINGS (FULLY EDITABLE, NO FIXED MIN/MAX, AUTO UPDATES BALANCE) */}
+      <section className="bg-white/95 border border-[#C7D3C0] rounded-2xl p-6 sm:p-7 space-y-5 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-[#243023]">
-              Monthly Budget Allocations &amp; Savings
-            </h2>
-            <p className="text-xs text-[#5A6B57]">
-              Priority savings have flexible ranges: Future savings (300k–500k) &amp; Hajj savings (200k–300k).
+            <div className="flex items-center gap-2">
+              <SlidersHorizontal className="w-4 h-4 text-[#8FA28A]" />
+              <h2 className="text-xl font-bold text-[#243023]">
+                Monthly Budget Allocations &amp; Savings
+              </h2>
+              <span className="font-arabic text-sm text-[#3A4B37]">الميزانية والادخار</span>
+            </div>
+            <p className="text-xs text-[#5A6B57] mt-0.5">
+              All allocation components and savings are freely customizable without fixed min/max caps. Your balance updates automatically.
             </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Filter buttons */}
+            <div className="flex items-center gap-1 bg-[#F7F4ED] border border-[#C7D3C0] rounded-xl p-1 text-xs">
+              <button
+                type="button"
+                onClick={() => setAllocationCategoryFilter('all')}
+                className={`px-3 py-1.5 rounded-lg font-semibold transition-colors ${
+                  allocationCategoryFilter === 'all'
+                    ? 'bg-[#8FA28A] text-white shadow-xs'
+                    : 'text-[#5A6B57] hover:text-[#243023]'
+                }`}
+              >
+                All ({allocations.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setAllocationCategoryFilter('tabungan')}
+                className={`px-3 py-1.5 rounded-lg font-semibold transition-colors ${
+                  allocationCategoryFilter === 'tabungan'
+                    ? 'bg-[#8FA28A] text-white shadow-xs'
+                    : 'text-[#5A6B57] hover:text-[#243023]'
+                }`}
+              >
+                Savings
+              </button>
+              <button
+                type="button"
+                onClick={() => setAllocationCategoryFilter('bakti')}
+                className={`px-3 py-1.5 rounded-lg font-semibold transition-colors ${
+                  allocationCategoryFilter === 'bakti'
+                    ? 'bg-[#8FA28A] text-white shadow-xs'
+                    : 'text-[#5A6B57] hover:text-[#243023]'
+                }`}
+              >
+                Parents Honor
+              </button>
+              <button
+                type="button"
+                onClick={() => setAllocationCategoryFilter('operasional')}
+                className={`px-3 py-1.5 rounded-lg font-semibold transition-colors ${
+                  allocationCategoryFilter === 'operasional'
+                    ? 'bg-[#8FA28A] text-white shadow-xs'
+                    : 'text-[#5A6B57] hover:text-[#243023]'
+                }`}
+              >
+                Operations
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowAddAllocForm((prev) => !prev)}
+              className="min-h-[38px] px-3.5 rounded-xl bg-[#8FA28A] text-white text-xs font-semibold hover:bg-[#7A8E75] transition-colors flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Add Component</span>
+            </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Future Savings Card with Range Slider */}
-          <div className="bg-white/95 border border-[#C7D3C0] rounded-2xl p-5 space-y-3">
+        {/* Form: Add New Allocation Component */}
+        {showAddAllocForm && (
+          <form
+            onSubmit={handleCreateNewAllocation}
+            className="p-4 rounded-xl bg-[#F7F4ED] border border-[#C7D3C0] space-y-3"
+          >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#EAEFE8] text-[#334630]">
-                Range 300k – 500k
-              </span>
+              <h3 className="text-xs font-bold text-[#243023] uppercase tracking-wider">
+                Add New Budget Component
+              </h3>
               <button
                 type="button"
-                onClick={() => onToggleAllocationTransferred('pos-masadepan')}
-                className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 ${
-                  allocations.find((a) => a.id === 'pos-masadepan')?.isTransferredThisMonth
-                    ? 'bg-[#8FA28A] text-white'
-                    : 'bg-[#F7F4ED] text-[#5A6B57] border border-[#C7D3C0]'
-                }`}
+                onClick={() => setShowAddAllocForm(false)}
+                className="text-xs text-[#6E7D6B] hover:text-[#243023]"
               >
-                <Check className="w-3.5 h-3.5" />
-                <span>
-                  {allocations.find((a) => a.id === 'pos-masadepan')?.isTransferredThisMonth
-                    ? 'Saved'
-                    : 'Mark Saved'}
-                </span>
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div>
-              <div className="text-xs font-medium text-[#5A6B57]">Future Savings (Master’s &amp; Life)</div>
-              <div className="text-2xl font-bold font-mono text-[#243023] mt-0.5">
-                {formatRupiah(masaDepanAlloc)}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div>
+                <label className="block text-[11px] font-medium text-[#5A6B57] mb-1">
+                  Component Name
+                </label>
+                <input
+                  type="text"
+                  value={newAllocName}
+                  onChange={(e) => setNewAllocName(e.target.value)}
+                  placeholder="e.g., Emergency Fund, English Test Savings"
+                  required
+                  className="w-full bg-white border border-[#C7D3C0] rounded-xl px-3 min-h-[38px] text-xs text-[#243023] focus:outline-none focus:border-[#8FA28A]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-[#5A6B57] mb-1">
+                  Allocated Amount (IDR)
+                </label>
+                <input
+                  type="number"
+                  value={newAllocAmount}
+                  onChange={(e) => setNewAllocAmount(e.target.value)}
+                  placeholder="300000"
+                  required
+                  className="w-full bg-white border border-[#C7D3C0] rounded-xl px-3 min-h-[38px] text-xs font-mono font-semibold text-[#243023] focus:outline-none focus:border-[#8FA28A]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-[#5A6B57] mb-1">
+                  Category
+                </label>
+                <select
+                  value={newAllocCategory}
+                  onChange={(e) =>
+                    setNewAllocCategory(e.target.value as BudgetAllocationItem['categoryType'])
+                  }
+                  className="w-full bg-white border border-[#C7D3C0] rounded-xl px-3 min-h-[38px] text-xs text-[#243023] focus:outline-none focus:border-[#8FA28A]"
+                >
+                  <option value="tabungan">Savings &amp; Future Goals</option>
+                  <option value="bakti">Parents Honor (Bakti Ortu)</option>
+                  <option value="operasional">Daily Operations</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-[#5A6B57] mb-1">
+                  Description / Goal Notes
+                </label>
+                <input
+                  type="text"
+                  value={newAllocDesc}
+                  onChange={(e) => setNewAllocDesc(e.target.value)}
+                  placeholder="e.g., Target savings for IELTS test"
+                  className="w-full bg-white border border-[#C7D3C0] rounded-xl px-3 min-h-[38px] text-xs text-[#243023] focus:outline-none focus:border-[#8FA28A]"
+                />
               </div>
             </div>
 
-            <div className="space-y-1 pt-1">
-              <div className="flex justify-between text-[11px] text-[#6E7D6B]">
-                <span>Min: 300k</span>
-                <span className="font-semibold text-[#243023]">Selected: {formatRupiah(masaDepanAlloc)}</span>
-                <span>Max: 500k</span>
-              </div>
-              <input
-                type="range"
-                min="300000"
-                max="500000"
-                step="25000"
-                value={masaDepanAlloc}
-                onChange={(e) => onUpdateAllocationAmount('pos-masadepan', Number(e.target.value))}
-                className="w-full accent-[#8FA28A] cursor-pointer"
-              />
-            </div>
-
-            <p className="text-[11px] text-[#6E7D6B] leading-relaxed">
-              Flexible range for tests, IELTS &amp; study applications.
-            </p>
-          </div>
-
-          {/* Hajj Savings Card with Range Slider */}
-          <div className="bg-white/95 border border-[#C7D3C0] rounded-2xl p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#EAEFE8] text-[#334630]">
-                Range 200k – 300k
-              </span>
+            <div className="flex justify-end gap-2 pt-1">
               <button
-                type="button"
-                onClick={() => onToggleAllocationTransferred('pos-haji')}
-                className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 ${
-                  allocations.find((a) => a.id === 'pos-haji')?.isTransferredThisMonth
-                    ? 'bg-[#8FA28A] text-white'
-                    : 'bg-[#F7F4ED] text-[#5A6B57] border border-[#C7D3C0]'
-                }`}
+                type="submit"
+                className="px-4 py-2 rounded-xl bg-[#8FA28A] text-white text-xs font-semibold hover:bg-[#7A8E75]"
               >
-                <Check className="w-3.5 h-3.5" />
-                <span>
-                  {allocations.find((a) => a.id === 'pos-haji')?.isTransferredThisMonth
-                    ? 'Saved'
-                    : 'Mark Saved'}
-                </span>
+                Save Budget Component
               </button>
             </div>
+          </form>
+        )}
 
-            <div>
-              <div className="text-xs font-medium text-[#5A6B57]">Hajj Savings</div>
-              <div className="text-2xl font-bold font-mono text-[#243023] mt-0.5">
-                {formatRupiah(hajiAlloc)}
-              </div>
-            </div>
+        {/* Allocation Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredAllocations.map((item) => {
+            const isEditing = editingAllocationId === item.id;
 
-            <div className="space-y-1 pt-1">
-              <div className="flex justify-between text-[11px] text-[#6E7D6B]">
-                <span>Min: 200k</span>
-                <span className="font-semibold text-[#243023]">Selected: {formatRupiah(hajiAlloc)}</span>
-                <span>Max: 300k</span>
-              </div>
-              <input
-                type="range"
-                min="200000"
-                max="300000"
-                step="25000"
-                value={hajiAlloc}
-                onChange={(e) => onUpdateAllocationAmount('pos-haji', Number(e.target.value))}
-                className="w-full accent-[#8FA28A] cursor-pointer"
-              />
-            </div>
-
-            <p className="text-[11px] text-[#6E7D6B] leading-relaxed">
-              Steady monthly steps towards securing the Hajj quota.
-            </p>
-          </div>
-
-          {/* Parents Gift Card */}
-          <div className="bg-white/95 border border-[#C7D3C0] rounded-2xl p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#EAEFE8] text-[#334630]">
-                Fixed 300k / mo
-              </span>
-              <button
-                type="button"
-                onClick={() => onToggleAllocationTransferred('pos-ortu')}
-                className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 ${
-                  allocations.find((a) => a.id === 'pos-ortu')?.isTransferredThisMonth
-                    ? 'bg-[#8FA28A] text-white'
-                    : 'bg-[#F7F4ED] text-[#5A6B57] border border-[#C7D3C0]'
-                }`}
+            return (
+              <div
+                key={item.id}
+                className="p-4 rounded-xl bg-[#F7F4ED] border border-[#C7D3C0] flex flex-col justify-between space-y-3 transition-shadow hover:shadow-xs"
               >
-                <Check className="w-3.5 h-3.5" />
-                <span>
-                  {allocations.find((a) => a.id === 'pos-ortu')?.isTransferredThisMonth
-                    ? 'Given'
-                    : 'Mark Given'}
-                </span>
-              </button>
-            </div>
-
-            <div>
-              <div className="text-xs font-medium text-[#5A6B57]">Gift for Parents (Bakti Ortu)</div>
-              <div className="text-2xl font-bold font-mono text-[#243023] mt-0.5">
-                {formatRupiah(ortuAlloc)}
-              </div>
-            </div>
-
-            <p className="text-[11px] text-[#6E7D6B] leading-relaxed pt-3">
-              Token of gratitude &amp; love for mom and dad.
-            </p>
-          </div>
-        </div>
-
-        {/* Operational Categories Breakdown */}
-        <div className="bg-white/90 border border-[#C7D3C0] rounded-2xl p-5">
-          <div className="text-xs font-bold text-[#243023] uppercase tracking-wide mb-3">
-            Operational &amp; Daily Living Budget
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {allocations
-              .filter((a) => a.categoryType === 'operasional')
-              .map((item) => (
-                <div key={item.id} className="p-3 rounded-xl bg-[#F7F4ED] border border-[#C7D3C0]/60">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#243023]">{item.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => onToggleAllocationTransferred(item.id)}
-                      className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors ${
-                        item.isTransferredThisMonth ? 'bg-[#8FA28A] text-white' : 'border border-[#C7D3C0] bg-white'
-                      }`}
-                    >
-                      {item.isTransferredThisMonth && <Check className="w-3 h-3" />}
-                    </button>
+                {isEditing ? (
+                  <div className="space-y-2.5">
+                    <div className="text-xs font-bold text-[#243023]">Edit Component</div>
+                    <div>
+                      <label className="block text-[10px] text-[#5A6B57] mb-0.5">Component Name</label>
+                      <input
+                        type="text"
+                        value={editAllocName}
+                        onChange={(e) => setEditAllocName(e.target.value)}
+                        className="w-full bg-white border border-[#C7D3C0] rounded-lg px-2.5 py-1.5 text-xs text-[#243023]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-[#5A6B57] mb-0.5">Amount (IDR)</label>
+                      <input
+                        type="number"
+                        value={editAllocAmount}
+                        onChange={(e) => setEditAllocAmount(e.target.value)}
+                        className="w-full bg-white border border-[#C7D3C0] rounded-lg px-2.5 py-1.5 text-xs font-mono font-semibold text-[#243023]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-[#5A6B57] mb-0.5">Category</label>
+                      <select
+                        value={editAllocCategory}
+                        onChange={(e) =>
+                          setEditAllocCategory(e.target.value as BudgetAllocationItem['categoryType'])
+                        }
+                        className="w-full bg-white border border-[#C7D3C0] rounded-lg px-2.5 py-1.5 text-xs text-[#243023]"
+                      >
+                        <option value="tabungan">Savings &amp; Future Goals</option>
+                        <option value="bakti">Parents Honor (Bakti Ortu)</option>
+                        <option value="operasional">Daily Operations</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-[#5A6B57] mb-0.5">Description / Purpose</label>
+                      <input
+                        type="text"
+                        value={editAllocDesc}
+                        onChange={(e) => setEditAllocDesc(e.target.value)}
+                        className="w-full bg-white border border-[#C7D3C0] rounded-lg px-2.5 py-1.5 text-xs text-[#243023]"
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setEditingAllocationId(null)}
+                        className="px-2.5 py-1 text-xs text-[#6E7D6B] hover:text-[#243023]"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSaveEditAllocation(item.id)}
+                        className="px-3 py-1 bg-[#8FA28A] text-white text-xs font-semibold rounded-lg hover:bg-[#7A8E75]"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
                   </div>
-                  <div className="text-base font-bold font-mono text-[#3A4B37] mt-1">
-                    {formatRupiah(item.amount)}
-                  </div>
-                  <div className="text-[11px] text-[#6E7D6B] mt-0.5">{item.description}</div>
-                </div>
-              ))}
-          </div>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white border border-[#C7D3C0] text-[#5A6B57] uppercase tracking-wide">
+                          {item.categoryType === 'tabungan'
+                            ? 'Savings'
+                            : item.categoryType === 'bakti'
+                            ? 'Parents Honor'
+                            : 'Operations'}
+                        </span>
+
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => onToggleAllocationTransferred(item.id)}
+                            className={`px-2 py-1 rounded-md text-[11px] font-semibold flex items-center gap-1 transition-colors ${
+                              item.isTransferredThisMonth
+                                ? 'bg-[#8FA28A] text-white'
+                                : 'bg-white border border-[#C7D3C0] text-[#5A6B57] hover:bg-[#EAEFE8]'
+                            }`}
+                            title="Mark as transferred / saved"
+                          >
+                            <Check className="w-3 h-3" />
+                            <span>{item.isTransferredThisMonth ? 'Saved' : 'Save'}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleStartEditAllocation(item)}
+                            className="p-1 text-[#5A6B57] hover:text-[#243023] rounded-md hover:bg-white"
+                            title="Edit this component"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+
+                          {onDeleteAllocation && allocations.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => onDeleteAllocation(item.id)}
+                              className="p-1 text-red-600 hover:text-red-800 rounded-md hover:bg-white"
+                              title="Delete this component"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="text-xs font-bold text-[#243023] leading-tight">
+                          {item.name}
+                        </h3>
+                        <div className="text-xl font-bold font-mono text-[#243023] mt-1">
+                          {formatRupiah(item.amount)}
+                        </div>
+                      </div>
+
+                      <p className="text-[11px] text-[#6E7D6B] leading-relaxed">
+                        {item.description || 'Monthly budgeted allocation.'}
+                      </p>
+                    </div>
+
+                    {/* Quick amount adjuster or direct edit trigger */}
+                    <div className="pt-2 border-t border-[#C7D3C0]/50 flex items-center justify-between text-[11px] text-[#5A6B57]">
+                      <span>Fixed Amount</span>
+                      <button
+                        type="button"
+                        onClick={() => handleStartEditAllocation(item)}
+                        className="font-semibold text-[#3A4B37] hover:underline"
+                      >
+                        Adjust Amount
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })}
         </div>
       </section>
 
-      {/* 3. INCOME & EXPENSE RECORDS (EDITABLE) */}
+      {/* 3. INCOME & EXPENSE RECORDS (STREAMLINED & CLEAR) */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Income List */}
-        <div className="bg-white/95 border border-[#C7D3C0] rounded-2xl p-5 space-y-4">
+        <div className="bg-white/95 border border-[#C7D3C0] rounded-2xl p-5 space-y-4 shadow-xs">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ArrowDownLeft className="w-4 h-4 text-[#8FA28A]" />
-              <h3 className="text-base font-bold text-[#243023]">Incomes (Salary &amp; Other)</h3>
+              <h3 className="text-base font-bold text-[#243023]">Income Records (Salary &amp; Extra)</h3>
+              <span className="font-arabic text-sm text-[#3A4B37]">سجل الدخل</span>
             </div>
             <button
               type="button"
@@ -724,7 +935,7 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                           type="text"
                           value={editIncCustomDesc}
                           onChange={(e) => setEditIncCustomDesc(e.target.value)}
-                          placeholder="Manual note / source explanation"
+                          placeholder="Custom notes regarding this source"
                           className="w-full bg-white border border-[#C7D3C0] rounded-lg p-1.5 text-xs"
                         />
                       )}
@@ -751,7 +962,7 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-bold text-[#243023]">{item.title}</span>
                           <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#EAEFE8] text-[#334630]">
-                            {item.sourceType}
+                            {item.sourceType === 'Salary' ? 'Salary' : 'Other'}
                           </span>
                         </div>
                         <div className="text-[11px] text-[#5A6B57] mt-0.5">
@@ -790,11 +1001,12 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
         </div>
 
         {/* Expense List */}
-        <div className="bg-white/95 border border-[#C7D3C0] rounded-2xl p-5 space-y-4">
+        <div className="bg-white/95 border border-[#C7D3C0] rounded-2xl p-5 space-y-4 shadow-xs">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ArrowUpRight className="w-4 h-4 text-[#8FA28A]" />
-              <h3 className="text-base font-bold text-[#243023]">Recorded Expenses</h3>
+              <h3 className="text-base font-bold text-[#243023]">Actual Expense Records</h3>
+              <span className="font-arabic text-sm text-[#3A4B37]">سجل المصروفات</span>
             </div>
             <button
               type="button"
@@ -826,11 +1038,11 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                           }
                           className="bg-white border border-[#C7D3C0] rounded-lg p-1.5 text-xs text-[#243023]"
                         >
-                          <option value="Fuel & Commute">Fuel &amp; Commute</option>
+                          <option value="Fuel & Commute">Fuel &amp; Transportation</option>
                           <option value="Infaq & Internet">Infaq &amp; Internet</option>
                           <option value="Friends & Hangout">Friends &amp; Hangouts</option>
                           <option value="Personal & Shopping">Personal &amp; Shopping</option>
-                          <option value="Unexpected">Unexpected / Lain-lain</option>
+                          <option value="Unexpected">Unexpected / Misc</option>
                         </select>
                         <input
                           type="number"
@@ -902,64 +1114,6 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                 </div>
               );
             })}
-          </div>
-        </div>
-      </section>
-
-      {/* 4. LONG-TERM ACCUMULATION PROJECTION */}
-      <section className="bg-white/95 border border-[#C7D3C0] rounded-2xl p-6 sm:p-7 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#5A6B57]">
-              <TrendingUp className="w-4 h-4 text-[#8FA28A]" />
-              <span>Savings Growth Simulation</span>
-            </div>
-            <h3 className="text-lg font-bold text-[#243023] mt-0.5">
-              Accumulation in {projectionYears} Year{projectionYears > 1 ? 's' : ''} ({monthsCount} Months)
-            </h3>
-          </div>
-
-          <div className="flex items-center gap-1 bg-[#F7F4ED] border border-[#C7D3C0] rounded-xl p-1">
-            {[1, 2, 3, 5].map((yr) => (
-              <button
-                key={yr}
-                type="button"
-                onClick={() => setProjectionYears(yr)}
-                className={`min-h-[36px] px-3 rounded-lg text-xs font-semibold transition-colors ${
-                  projectionYears === yr
-                    ? 'bg-[#8FA28A] text-white'
-                    : 'text-[#4A5D46] hover:text-[#243023]'
-                }`}
-              >
-                {yr} Year{yr > 1 ? 's' : ''}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="p-4 rounded-xl bg-[#F7F4ED] border border-[#C7D3C0]/60 space-y-1">
-            <div className="text-xs text-[#5A6B57]">
-              Projected Hajj Savings ({formatRupiah(hajiAlloc)}/mo)
-            </div>
-            <div className="text-2xl font-bold font-mono text-[#243023]">
-              {formatRupiah(projectedHaji)}
-            </div>
-            <p className="text-[11px] text-[#6E7D6B]">
-              Takes you closer to the initial official Hajj quota deposit.
-            </p>
-          </div>
-
-          <div className="p-4 rounded-xl bg-[#F7F4ED] border border-[#C7D3C0]/60 space-y-1">
-            <div className="text-xs text-[#5A6B57]">
-              Projected Future Savings ({formatRupiah(masaDepanAlloc)}/mo)
-            </div>
-            <div className="text-2xl font-bold font-mono text-[#243023]">
-              {formatRupiah(projectedMasaDepan)}
-            </div>
-            <p className="text-[11px] text-[#6E7D6B]">
-              Ready for IELTS tests, Master’s applications &amp; life milestones.
-            </p>
           </div>
         </div>
       </section>

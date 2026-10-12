@@ -30,6 +30,8 @@ import {
   BudgetAllocationItem,
   ExpenseRecord,
   DAYS_OF_WEEK,
+  DailyTilawahRecord,
+  JUZ_PAGE_MAP,
 } from './data/plannerData';
 import { DailyMutabaahView } from './components/DailyMutabaahView';
 import { Murojaah196View } from './components/Murojaah196View';
@@ -127,6 +129,11 @@ export default function App() {
   });
 
   const [currentTilawahJuz, setCurrentTilawahJuz] = useState<number>(4);
+  const [tilawahRecordsByDay, setTilawahRecordsByDay] = useState<
+    Record<string, DailyTilawahRecord>
+  >({
+    senin: { juz: 4, startPage: 62, endPage: 82, totalPages: 21 },
+  });
   const [istighfarByDay, setIstighfarByDay] = useState<Record<string, number>>({
     senin: 100,
   });
@@ -173,6 +180,7 @@ export default function App() {
       if (parsed.isHaidhModeByDay) setIsHaidhModeByDay(parsed.isHaidhModeByDay);
       if (typeof parsed.currentTilawahJuz === 'number')
         setCurrentTilawahJuz(parsed.currentTilawahJuz);
+      if (parsed.tilawahRecordsByDay) setTilawahRecordsByDay(parsed.tilawahRecordsByDay);
       if (parsed.istighfarByDay) setIstighfarByDay(parsed.istighfarByDay);
       if (parsed.muhasabahNotesByDay) setMuhasabahNotesByDay(parsed.muhasabahNotesByDay);
       if (typeof parsed.isMurojaahStarted === 'boolean')
@@ -201,6 +209,7 @@ export default function App() {
         mutabaahState,
         isHaidhModeByDay,
         currentTilawahJuz,
+        tilawahRecordsByDay,
         istighfarByDay,
         muhasabahNotesByDay,
         isMurojaahStarted,
@@ -224,6 +233,7 @@ export default function App() {
     mutabaahState,
     isHaidhModeByDay,
     currentTilawahJuz,
+    tilawahRecordsByDay,
     istighfarByDay,
     muhasabahNotesByDay,
     isMurojaahStarted,
@@ -527,10 +537,52 @@ export default function App() {
     setIncomes((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const handleUpdateTilawahRecord = (day: DayKey, record: DailyTilawahRecord) => {
+    setTilawahRecordsByDay((prev) => ({
+      ...prev,
+      [day]: record,
+    }));
+    setCurrentTilawahJuz(record.juz);
+    if (record.totalPages >= 20) {
+      setMutabaahState((prev) => ({
+        ...prev,
+        [`${day}-mengaji_1_juz`]: true,
+      }));
+    }
+  };
+
   const handleUpdateAllocationAmount = (id: string, newAmount: number) => {
     setBudgetAllocations((prev) =>
       prev.map((item) => (item.id === id ? { ...item, amount: newAmount } : item))
     );
+  };
+
+  const handleUpdateAllocation = (updated: BudgetAllocationItem) => {
+    setBudgetAllocations((prev) =>
+      prev.map((item) => (item.id === updated.id ? updated : item))
+    );
+  };
+
+  const handleAddAllocation = (
+    name: string,
+    amount: number,
+    categoryType: BudgetAllocationItem['categoryType'],
+    description: string
+  ) => {
+    const newItem: BudgetAllocationItem = {
+      id: `pos-${Date.now()}`,
+      name,
+      amount,
+      percentage: Math.round((amount / 2000000) * 100),
+      categoryType,
+      description,
+      isTransferredThisMonth: false,
+    };
+    setBudgetAllocations((prev) => [...prev, newItem]);
+  };
+
+  const handleDeleteAllocation = (id: string) => {
+    setBudgetAllocations((prev) => prev.filter((item) => item.id !== id));
   };
 
   const handleToggleAllocationTransferred = (id: string) => {
@@ -574,7 +626,7 @@ export default function App() {
     icon: React.ComponentType<{ className?: string }>;
   }> = [
     { id: 'harian', label: 'Daily Routine', mobileLabel: 'Daily', icon: Calendar },
-    { id: 'murojaah', label: 'Murojaah Map', mobileLabel: 'Murojaah', icon: BookOpen },
+    { id: 'murojaah', label: 'Murojaah Roadmap', mobileLabel: 'Murojaah', icon: BookOpen },
     { id: 'planning', label: 'Roadmap & Study', mobileLabel: 'Roadmap', icon: Layers },
     { id: 'target', label: 'Life Goals', mobileLabel: 'Goals', icon: Compass },
     { id: 'keuangan', label: 'Finance Flow', mobileLabel: 'Finance', icon: Wallet },
@@ -669,6 +721,15 @@ export default function App() {
             onToggleMutabaah={handleToggleMutabaah}
             currentTilawahJuz={currentTilawahJuz}
             onUpdateTilawahJuz={setCurrentTilawahJuz}
+            tilawahRecord={
+              tilawahRecordsByDay[selectedDay] || {
+                juz: currentTilawahJuz,
+                startPage: JUZ_PAGE_MAP[currentTilawahJuz]?.startPage || 62,
+                endPage: JUZ_PAGE_MAP[currentTilawahJuz]?.endPage || 81,
+                totalPages: JUZ_PAGE_MAP[currentTilawahJuz]?.totalPages || 20,
+              }
+            }
+            onUpdateTilawahRecord={(rec) => handleUpdateTilawahRecord(selectedDay, rec)}
             istighfarCount={istighfarByDay[selectedDay] || 0}
             onUpdateIstighfar={handleUpdateIstighfar}
             activeMurojaahDay={activeMurojaahDay}
@@ -732,6 +793,9 @@ export default function App() {
             onDeleteIncome={handleDeleteIncome}
             allocations={budgetAllocations}
             onUpdateAllocationAmount={handleUpdateAllocationAmount}
+            onUpdateAllocation={handleUpdateAllocation}
+            onAddAllocation={handleAddAllocation}
+            onDeleteAllocation={handleDeleteAllocation}
             onToggleAllocationTransferred={handleToggleAllocationTransferred}
             expenses={expenses}
             onAddExpense={handleAddExpense}

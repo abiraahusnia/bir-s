@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, BookOpen, Search, Check, Layers, Clock, HelpCircle } from 'lucide-react';
+import { X, BookOpen, Search, Layers, Clock, HelpCircle } from 'lucide-react';
 import { JUZ_PAGE_MAP, ALL_196_MUROJAAH_DAYS, MurojaahDayEntry } from '../data/plannerData';
 
 interface MushafPageGuideModalProps {
@@ -13,9 +13,8 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
   isOpen,
   onClose,
   activeDay,
-  onSelectDay,
 }) => {
-  const [activeTab, setActiveTab] = useState<'rumus' | 'tabel' | 'hariIni'>('rumus');
+  const [activeTab, setActiveTab] = useState<'formula' | 'today' | 'table'>('formula');
   const [searchQuery, setSearchQuery] = useState('');
 
   if (!isOpen) return null;
@@ -30,8 +29,8 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
     return (
       `juz ${j.juz}`.includes(query) ||
       j.surahSummary.toLowerCase().includes(query) ||
-      `hal ${j.startPage}`.includes(query) ||
-      `hal ${j.endPage}`.includes(query)
+      `page ${j.startPage}`.includes(query) ||
+      `page ${j.endPage}`.includes(query)
     );
   });
 
@@ -46,11 +45,12 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
                 <BookOpen className="w-4 h-4 text-[#8FA28A]" />
               </span>
               <h3 className="text-base sm:text-lg font-bold text-[#243023]">
-                Panduan Target Halaman &amp; Lembar Murojaah
+                Murojaah Page &amp; Sheet Guide
               </h3>
+              <span className="font-arabic text-sm text-[#3A4B37]">دليل صفحات المصحف</span>
             </div>
             <p className="text-xs text-[#5A6B57] mt-1">
-              Standar Mushaf Madinah (15 baris), hitungan halaman per hari, dan tabel 30 Juz.
+              Standard Madinah Mushaf (15 lines), daily page formulas, and complete 30 Juz reference table.
             </p>
           </div>
           <button
@@ -66,59 +66,59 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
         <div className="flex border-b border-[#C7D3C0] bg-white/70 px-4 pt-2 gap-2 shrink-0">
           <button
             type="button"
-            onClick={() => setActiveTab('rumus')}
+            onClick={() => setActiveTab('formula')}
             className={`px-3 py-2 text-xs font-semibold border-b-2 transition-colors ${
-              activeTab === 'rumus'
+              activeTab === 'formula'
                 ? 'border-[#8FA28A] text-[#243023]'
                 : 'border-transparent text-[#6E7D6B] hover:text-[#243023]'
             }`}
           >
-            Cara Hitung &amp; Formula
+            Calculation &amp; Formula
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('hariIni')}
+            onClick={() => setActiveTab('today')}
             className={`px-3 py-2 text-xs font-semibold border-b-2 transition-colors ${
-              activeTab === 'hariIni'
+              activeTab === 'today'
                 ? 'border-[#8FA28A] text-[#243023]'
                 : 'border-transparent text-[#6E7D6B] hover:text-[#243023]'
             }`}
           >
-            Target Hari Ini (Day {activeDay})
+            Today&apos;s Target (Day {activeDay})
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('tabel')}
+            onClick={() => setActiveTab('table')}
             className={`px-3 py-2 text-xs font-semibold border-b-2 transition-colors ${
-              activeTab === 'tabel'
+              activeTab === 'table'
                 ? 'border-[#8FA28A] text-[#243023]'
                 : 'border-transparent text-[#6E7D6B] hover:text-[#243023]'
             }`}
           >
-            Tabel 30 Juz Mushaf
+            30 Juz Mushaf Table
           </button>
         </div>
 
         {/* Content Body */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
           {/* TAB 1: FORMULA & HOW TO CALCULATE */}
-          {activeTab === 'rumus' && (
+          {activeTab === 'formula' && (
             <div className="space-y-4 text-xs">
               {/* Highlight Card */}
               <div className="p-4 rounded-xl bg-white border border-[#C7D3C0] space-y-2">
                 <div className="flex items-center gap-2">
                   <HelpCircle className="w-4 h-4 text-[#8FA28A]" />
                   <h4 className="font-bold text-[#243023] text-sm">
-                    Berapa Halaman dalam 1 Juz Al-Qur’an?
+                    How Many Pages in 1 Juz of the Holy Quran?
                   </h4>
                 </div>
                 <p className="text-[#5A6B57] leading-relaxed">
-                  Pada <strong>Mushaf Madinah standar (Rasm Utsmani, 15 baris per halaman)</strong>, Al-Qur’an terdiri dari total <strong>604 Halaman</strong>. Setiap 1 Juz rata-rata berisi tepat <strong>20 Halaman (10 Lembar bolak-balik)</strong>.
+                  In the standard <strong>Madinah Mushaf (Uthmani Script, 15 lines per page)</strong>, the Holy Quran contains <strong>604 Pages</strong> in total. Each Juz contains exactly <strong>20 Pages (10 double-sided sheets)</strong> on average.
                 </p>
                 <div className="p-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1 text-[11px] text-[#4A5D46]">
-                  <div>• <strong>Juz 2 sampai Juz 29:</strong> Tepat 20 Halaman per Juz (10 lembar bolak-balik).</div>
-                  <div>• <strong>Juz 1:</strong> 21 Halaman (Hal. 1 s/d 21, karena Surah Al-Fatihah di halaman 1).</div>
-                  <div>• <strong>Juz 30:</strong> 23 Halaman (Hal. 582 s/d 604, surah-surah pendek juz amma).</div>
+                  <div>• <strong>Juz 2 through Juz 29:</strong> Exactly 20 Pages per Juz (10 double-sided sheets).</div>
+                  <div>• <strong>Juz 1:</strong> 21 Pages (p. 1 to 21, starting with Surah Al-Fatihah on page 1).</div>
+                  <div>• <strong>Juz 30:</strong> 23 Pages (p. 582 to 604, short surahs of Juz Amma).</div>
                 </div>
               </div>
 
@@ -126,44 +126,44 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
               <div className="p-4 rounded-xl bg-white border border-[#C7D3C0] space-y-3">
                 <h4 className="font-bold text-[#243023] text-sm flex items-center gap-2">
                   <Layers className="w-4 h-4 text-[#8FA28A]" />
-                  <span>Bagaimana Target Halaman Murojaah Harian Dihitung?</span>
+                  <span>How is Daily Murojaah Page Target Calculated?</span>
                 </h4>
                 <p className="text-[#5A6B57] leading-relaxed">
-                  Pada peta murojaah Anda, 1 Juz dialokasikan selama beberapa hari agar hafalan mutqin dan tidak memberatkan. Rumusnya sangat sederhana:
+                  In your murojaah roadmap, each Juz is allocated across multiple days so retention stays solid and never burdens your teaching schedule. The formula is simple:
                 </p>
                 <div className="p-3 rounded-lg bg-[#EAEFE8] border border-[#C7D3C0] text-center font-mono font-bold text-[#243023] text-xs">
-                  Target Halaman per Hari = 20 Halaman ÷ Jumlah Hari Alokasi
+                  Daily Target Pages = 20 Pages ÷ Allocated Days
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                   <div className="p-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1">
-                    <span className="font-bold text-[#243023]">Alokasi 2 Hari (Juz 28, 27, 26)</span>
-                    <div className="text-[#3A4B37]">20 hal ÷ 2 = <strong>10 hal/hari (~5 lembar)</strong></div>
-                    <div className="text-[10px] text-[#6E7D6B]">Contoh: Hari 3 (Hal. 542–551), Hari 4 (Hal. 552–561).</div>
+                    <span className="font-bold text-[#243023]">2-Day Allocation (Juz 28, 27, 26)</span>
+                    <div className="text-[#3A4B37]">20 pages ÷ 2 = <strong>10 pages/day (~5 sheets)</strong></div>
+                    <div className="text-[10px] text-[#6E7D6B]">Example: Day 3 (p. 542–551), Day 4 (p. 552–561).</div>
                   </div>
 
                   <div className="p-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1">
-                    <span className="font-bold text-[#243023]">Alokasi 4 Hari (Juz 2, 3)</span>
-                    <div className="text-[#3A4B37]">20 hal ÷ 4 = <strong>5 hal/hari (~2.5 lembar)</strong></div>
-                    <div className="text-[10px] text-[#6E7D6B]">Sangat santai: cukup 5 halaman per hari.</div>
+                    <span className="font-bold text-[#243023]">4-Day Allocation (Juz 2, 3)</span>
+                    <div className="text-[#3A4B37]">20 pages ÷ 4 = <strong>5 pages/day (~2.5 sheets)</strong></div>
+                    <div className="text-[10px] text-[#6E7D6B]">Calm &amp; steady: 5 pages per day.</div>
                   </div>
 
                   <div className="p-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1">
-                    <span className="font-bold text-[#243023]">Alokasi 5 Hari (Juz 4, 5)</span>
-                    <div className="text-[#3A4B37]">20 hal ÷ 5 = <strong>4 hal/hari (~2 lembar)</strong></div>
-                    <div className="text-[10px] text-[#6E7D6B]">Cukup 2 lembar bolak-balik per hari.</div>
+                    <span className="font-bold text-[#243023]">5-Day Allocation (Juz 4, 5)</span>
+                    <div className="text-[#3A4B37]">20 pages ÷ 5 = <strong>4 pages/day (~2 sheets)</strong></div>
+                    <div className="text-[10px] text-[#6E7D6B]">Exactly 2 double-sided sheets per day.</div>
                   </div>
 
                   <div className="p-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1">
-                    <span className="font-bold text-[#243023]">Alokasi 6–7 Hari (Juz 6–17)</span>
-                    <div className="text-[#3A4B37]">20 hal ÷ 6/7 = <strong>~3 hal/hari (~1.5 lembar)</strong></div>
-                    <div className="text-[10px] text-[#6E7D6B]">Pengulangan teliti dan mutqin.</div>
+                    <span className="font-bold text-[#243023]">6–7 Day Allocation (Juz 6–17)</span>
+                    <div className="text-[#3A4B37]">20 pages ÷ 6/7 = <strong>~3 pages/day (~1.5 sheets)</strong></div>
+                    <div className="text-[10px] text-[#6E7D6B]">Deep repetition for solid mutqin retention.</div>
                   </div>
 
                   <div className="p-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1 sm:col-span-2">
-                    <span className="font-bold text-[#243023]">Alokasi 10 Hari (Juz 21–25)</span>
-                    <div className="text-[#3A4B37]">20 hal ÷ 10 = <strong>2 hal/hari (tepat 1 lembar bolak-balik)</strong></div>
-                    <div className="text-[10px] text-[#6E7D6B]">Hanya 1 lembar per hari, hafalan melekat kuat dan mutqin.</div>
+                    <span className="font-bold text-[#243023]">10-Day Allocation (Juz 21–25)</span>
+                    <div className="text-[#3A4B37]">20 pages ÷ 10 = <strong>2 pages/day (1 double-sided sheet)</strong></div>
+                    <div className="text-[10px] text-[#6E7D6B]">Very light, 1 sheet per day locks in long-term mastery.</div>
                   </div>
                 </div>
               </div>
@@ -173,24 +173,24 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-[#8FA28A]" />
                   <h4 className="font-bold text-[#243023] text-sm">
-                    Tips Pembagian di 5 Waktu Shalat
+                    Distribution Across the 5 Daily Prayers
                   </h4>
                 </div>
                 <p className="text-[#5A6B57] leading-relaxed">
-                  Agar target halaman terasa sangat ringan di sela-sela mengajar halaqah:
+                  Make your page targets effortless between teaching halaqah sessions:
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-[11px]">
                   <div className="p-2.5 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/60">
-                    <div className="font-bold text-[#243023]">Jika Target 10 Halaman:</div>
-                    <div className="text-[#5A6B57] mt-0.5">2 hal ba’da Subuh, 2 hal ba’da Dzuhur, 2 hal ba’da Ashar, 2 hal ba’da Maghrib, 2 hal ba’da Isya.</div>
+                    <div className="font-bold text-[#243023]">Target 10 Pages:</div>
+                    <div className="text-[#5A6B57] mt-0.5">2 pages after Fajr, Dhuhr, Asr, Maghrib, and Isha.</div>
                   </div>
                   <div className="p-2.5 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/60">
-                    <div className="font-bold text-[#243023]">Jika Target 5 Halaman:</div>
-                    <div className="text-[#5A6B57] mt-0.5">Cukup 1 halaman ba’da setiap shalat fardhu. Selesai tanpa beban!</div>
+                    <div className="font-bold text-[#243023]">Target 5 Pages:</div>
+                    <div className="text-[#5A6B57] mt-0.5">1 page after each obligatory prayer. Seamless and stress-free!</div>
                   </div>
                   <div className="p-2.5 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/60">
-                    <div className="font-bold text-[#243023]">Jika Target 2 Halaman:</div>
-                    <div className="text-[#5A6B57] mt-0.5">1 lembar bolak-balik ba’da Subuh atau ba’da Maghrib. Selesai dalam 15 menit.</div>
+                    <div className="font-bold text-[#243023]">Target 2 Pages:</div>
+                    <div className="text-[#5A6B57] mt-0.5">1 sheet after Fajr or Maghrib. Completed in 15 minutes.</div>
                   </div>
                 </div>
               </div>
@@ -198,13 +198,13 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
           )}
 
           {/* TAB 2: ACTIVE DAY BREAKDOWN */}
-          {activeTab === 'hariIni' && (
+          {activeTab === 'today' && (
             <div className="space-y-4 text-xs">
               <div className="p-4 rounded-xl bg-white border border-[#C7D3C0] space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-[11px] text-[#5A6B57] font-mono">
-                      Target Day {currentDaySpec.day} dari 196
+                      Milestone Day {currentDaySpec.day} of 196
                     </span>
                     <h4 className="text-base font-bold text-[#243023] mt-0.5">
                       {currentDaySpec.targetLabel}
@@ -216,7 +216,7 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-[#F7F4ED] border border-[#C7D3C0] space-y-1.5">
-                  <div className="text-[11px] text-[#5A6B57]">Halaman Mushaf Madinah:</div>
+                  <div className="text-[11px] text-[#5A6B57]">Madinah Mushaf Pages:</div>
                   <div className="text-xl font-extrabold font-mono text-[#243023]">
                     {currentDaySpec.pageRangeText}
                   </div>
@@ -228,7 +228,7 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
                 {currentDaySpec.pagesList && currentDaySpec.pagesList.length > 0 && (
                   <div className="space-y-1.5 pt-1">
                     <div className="text-[11px] font-bold text-[#243023]">
-                      Daftar Halaman untuk Dibuka Hari Ini:
+                      Checklist Pages to Open Today:
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       {currentDaySpec.pagesList.map((pageNum) => (
@@ -236,7 +236,7 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
                           key={pageNum}
                           className="px-2.5 py-1 rounded-md bg-[#F7F4ED] border border-[#C7D3C0] font-mono font-semibold text-[#243023]"
                         >
-                          Hal. {pageNum}
+                          p.{pageNum}
                         </span>
                       ))}
                     </div>
@@ -247,7 +247,7 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
           )}
 
           {/* TAB 3: TABLE 30 JUZ MUSHAF MADINAH */}
-          {activeTab === 'tabel' && (
+          {activeTab === 'table' && (
             <div className="space-y-3 text-xs">
               <div className="relative">
                 <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-[#6E7D6B]" />
@@ -255,7 +255,7 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cari nomor Juz atau nama Surah..."
+                  placeholder="Search Juz number or Surah name..."
                   className="w-full pl-9 pr-3 py-2 bg-white border border-[#C7D3C0] rounded-xl text-xs text-[#243023] placeholder-[#8A9B85] focus:outline-none"
                 />
               </div>
@@ -263,9 +263,9 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
               <div className="bg-white rounded-xl border border-[#C7D3C0] overflow-hidden">
                 <div className="grid grid-cols-12 bg-[#F7F4ED] px-3 py-2 font-bold text-[11px] text-[#3A4B37] border-b border-[#C7D3C0]">
                   <div className="col-span-2">Juz</div>
-                  <div className="col-span-5">Cakupan Surah</div>
-                  <div className="col-span-3">Halaman</div>
-                  <div className="col-span-2 text-right">Lembar</div>
+                  <div className="col-span-5">Surah Coverage</div>
+                  <div className="col-span-3">Pages</div>
+                  <div className="col-span-2 text-right">Sheets</div>
                 </div>
 
                 <div className="divide-y divide-[#C7D3C0]/40 max-h-[380px] overflow-y-auto">
@@ -281,10 +281,10 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
                         {j.surahSummary}
                       </div>
                       <div className="col-span-3 font-mono font-semibold text-[#3A4B37] text-[11px]">
-                        {j.startPage} – {j.endPage}
+                        p. {j.startPage} – {j.endPage}
                       </div>
                       <div className="col-span-2 text-right text-[#5A6B57] text-[11px]">
-                        {Math.round((j.totalPages / 2) * 10) / 10} lbr
+                        {Math.round((j.totalPages / 2) * 10) / 10} sheets
                       </div>
                     </div>
                   ))}
@@ -301,7 +301,7 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
             onClick={onClose}
             className="min-h-[38px] px-5 rounded-xl bg-[#8FA28A] text-white text-xs font-semibold hover:bg-[#7A8E75] transition-colors"
           >
-            Tutup
+            Close
           </button>
         </div>
       </div>

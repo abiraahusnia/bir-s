@@ -212,7 +212,6 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                     <option value="istirahat">Rest / Nap (Qailulah)</option>
                     <option value="ibadah">Worship (Tahajjud, Subuh, Rawatib)</option>
                     <option value="halaqah">Teaching Halaqah</option>
-                    <option value="perjalanan">Commute / Travel</option>
                     <option value="belajar">Study (English, Fiqh, S2)</option>
                     <option value="fleksibel">Flexible / Family</option>
                   </select>
@@ -290,7 +289,6 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                           <option value="istirahat">Rest / Nap</option>
                           <option value="ibadah">Worship</option>
                           <option value="halaqah">Teaching Halaqah</option>
-                          <option value="perjalanan">Commute / Travel</option>
                           <option value="belajar">Study</option>
                           <option value="fleksibel">Flexible</option>
                         </select>
