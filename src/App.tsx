@@ -692,14 +692,6 @@ export default function App() {
             >
               <Edit2 className="w-3.5 h-3.5 mr-1.5 my-auto" />
               <span>Edit Schedule</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowMobileInstallGuide(true)}
-              className="min-h-[38px] px-3.5 py-1.5 text-xs font-semibold text-white bg-[#8FA28A] rounded-xl hover:bg-[#7A8E75] transition-colors whitespace-nowrap"
-            >
-              iOS &amp; Android App
-            </button>
           </div>
         </div>
       </header>
