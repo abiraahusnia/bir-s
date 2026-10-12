@@ -174,7 +174,7 @@ export const Murojaah196View: React.FC<Murojaah196ViewProps> = ({
               </div>
             </div>
 
-            {/* Target Halaman Box */}
+            {/* Target Pages Box */}
             <div className="p-3 rounded-xl bg-white border border-[#C7D3C0] space-y-1">
               <div className="flex flex-wrap items-center justify-between gap-1 text-xs">
                 <span className="font-bold text-[#243023]">

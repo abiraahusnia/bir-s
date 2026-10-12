@@ -210,7 +210,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                     className="w-full bg-[#F7F4ED] border border-[#C7D3C0] rounded-xl px-3 min-h-[38px] text-xs"
                   >
                     <option value="istirahat">Rest / Nap (Qailulah)</option>
-                    <option value="ibadah">Worship (Tahajjud, Subuh, Rawatib)</option>
+                    <option value="ibadah">Worship (Tahajjud, Fajr, Rawatib)</option>
                     <option value="halaqah">Teaching Halaqah</option>
                     <option value="belajar">Study (English, Fiqh, S2)</option>
                     <option value="fleksibel">Flexible / Family</option>

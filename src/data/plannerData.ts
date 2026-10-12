@@ -711,15 +711,15 @@ export function buildAll196MurojaahDays(): MurojaahDayEntry[] {
 
           pageRangeText =
             startPageToday === endPageToday
-              ? `Hal. ${startPageToday}`
-              : `Hal. ${startPageToday} – ${endPageToday}`;
+              ? `p. ${startPageToday}`
+              : `p. ${startPageToday} – ${endPageToday}`;
 
           const sheets = Math.round((pagesCountToday / 2) * 10) / 10;
-          sheetsEstimateText = `~${sheets} Lembar (${pagesCountToday} Halaman)`;
+          sheetsEstimateText = `~${sheets} Sheets (${pagesCountToday} Pages)`;
           formulaNote =
             totalDaysInBlock > 1
-              ? `Juz ${juzNum} (${totalPages} hal) dibagi ${totalDaysInBlock} hari = ${pagesCountToday} hal/hari`
-              : `Juz ${juzNum} tuntas dalam 1 hari (${totalPages} hal)`;
+              ? `Juz ${juzNum} (${totalPages} pages) divided across ${totalDaysInBlock} days = ${pagesCountToday} pages/day`
+              : `Juz ${juzNum} completed in 1 day (${totalPages} pages)`;
 
           for (let p = startPageToday; p <= endPageToday; p++) {
             pagesList.push(p);
@@ -729,73 +729,73 @@ export function buildAll196MurojaahDays(): MurojaahDayEntry[] {
           if (block.targetLabel.includes('26 – 30') || block.targetLabel.includes('26-30')) {
             startPageToday = 502;
             endPageToday = 604;
-            pageRangeText = 'Hal. 502 – 604 (Juz 26–30)';
+            pageRangeText = 'p. 502 – 604 (Juz 26–30)';
             pagesCountToday = 103;
-            sheetsEstimateText = '~51.5 Lembar (Evaluasi 5 Juz)';
-            formulaNote = 'Review gabungan 5 Juz sekaligus per hizb / rubu’';
+            sheetsEstimateText = '~51.5 Sheets (5 Juz Review)';
+            formulaNote = 'Combined review of 5 Juz per hizb / rubu’';
           } else if (block.targetLabel.includes('1 – 5')) {
             startPageToday = 1;
             endPageToday = 101;
-            pageRangeText = 'Hal. 1 – 101 (Juz 1–5)';
+            pageRangeText = 'p. 1 – 101 (Juz 1–5)';
             pagesCountToday = 101;
-            sheetsEstimateText = '~50.5 Lembar (Evaluasi 5 Juz)';
-            formulaNote = 'Review gabungan Juz 1 s/d 5';
+            sheetsEstimateText = '~50.5 Sheets (5 Juz Review)';
+            formulaNote = 'Combined review of Juz 1 through 5';
           } else if (block.targetLabel.includes('6 – 10')) {
             startPageToday = 102;
             endPageToday = 201;
-            pageRangeText = 'Hal. 102 – 201 (Juz 6–10)';
+            pageRangeText = 'p. 102 – 201 (Juz 6–10)';
             pagesCountToday = 100;
-            sheetsEstimateText = '~50 Lembar (Evaluasi 5 Juz)';
-            formulaNote = 'Review gabungan Juz 6 s/d 10';
+            sheetsEstimateText = '~50 Sheets (5 Juz Review)';
+            formulaNote = 'Combined review of Juz 6 through 10';
           } else if (block.targetLabel.includes('11 – 15')) {
             startPageToday = 202;
             endPageToday = 301;
-            pageRangeText = 'Hal. 202 – 301 (Juz 11–15)';
+            pageRangeText = 'p. 202 – 301 (Juz 11–15)';
             pagesCountToday = 100;
-            sheetsEstimateText = '~50 Lembar (Evaluasi 5 Juz)';
-            formulaNote = 'Review gabungan Juz 11 s/d 15';
+            sheetsEstimateText = '~50 Sheets (5 Juz Review)';
+            formulaNote = 'Combined review of Juz 11 through 15';
           } else if (block.targetLabel.includes('16 – 20')) {
             startPageToday = 302;
             endPageToday = 401;
-            pageRangeText = 'Hal. 302 – 401 (Juz 16–20)';
+            pageRangeText = 'p. 302 – 401 (Juz 16–20)';
             pagesCountToday = 100;
-            sheetsEstimateText = '~50 Lembar (Evaluasi 5 Juz)';
-            formulaNote = 'Review gabungan Juz 16 s/d 20';
+            sheetsEstimateText = '~50 Sheets (5 Juz Review)';
+            formulaNote = 'Combined review of Juz 16 through 20';
           } else if (block.targetLabel.includes('21 – 25')) {
             startPageToday = 402;
             endPageToday = 501;
-            pageRangeText = 'Hal. 402 – 501 (Juz 21–25)';
+            pageRangeText = 'p. 402 – 501 (Juz 21–25)';
             pagesCountToday = 100;
-            sheetsEstimateText = '~50 Lembar (Evaluasi 5 Juz)';
-            formulaNote = 'Review gabungan Juz 21 s/d 25';
+            sheetsEstimateText = '~50 Sheets (5 Juz Review)';
+            formulaNote = 'Combined review of Juz 21 through 25';
           } else if (block.targetLabel.includes('1 – 10')) {
             startPageToday = 1;
             endPageToday = 201;
-            pageRangeText = 'Hal. 1 – 201 (Juz 1–10)';
+            pageRangeText = 'p. 1 – 201 (Juz 1–10)';
             pagesCountToday = 201;
-            sheetsEstimateText = '~100 Lembar (Khatam 10 Juz)';
-            formulaNote = 'Grand Review 10 Juz pertama';
+            sheetsEstimateText = '~100 Sheets (10 Juz Review)';
+            formulaNote = 'Grand Review of the first 10 Juz';
           } else if (block.targetLabel.includes('11 – 20')) {
             startPageToday = 202;
             endPageToday = 401;
-            pageRangeText = 'Hal. 202 – 401 (Juz 11–20)';
+            pageRangeText = 'p. 202 – 401 (Juz 11–20)';
             pagesCountToday = 200;
-            sheetsEstimateText = '~100 Lembar (Khatam 10 Juz)';
-            formulaNote = 'Grand Review 10 Juz pertengahan';
+            sheetsEstimateText = '~100 Sheets (10 Juz Review)';
+            formulaNote = 'Grand Review of middle 10 Juz';
           } else if (block.targetLabel.includes('21 – 30')) {
             startPageToday = 402;
             endPageToday = 604;
-            pageRangeText = 'Hal. 402 – 604 (Juz 21–30)';
+            pageRangeText = 'p. 402 – 604 (Juz 21–30)';
             pagesCountToday = 203;
-            sheetsEstimateText = '~101.5 Lembar (Khatam 10 Juz Akhir)';
-            formulaNote = 'Grand Review 10 Juz pamungkas (Khatam 30 Juz Mutqin)';
+            sheetsEstimateText = '~101.5 Sheets (Final 10 Juz Review)';
+            formulaNote = 'Grand Review of final 10 Juz (30 Juz Mutqin Completion)';
           } else {
             startPageToday = 1;
             endPageToday = 604;
-            pageRangeText = 'Murojaah Terarah';
+            pageRangeText = 'Guided Murojaah';
             pagesCountToday = 20;
-            sheetsEstimateText = '~10 Lembar';
-            formulaNote = 'Review hafalan gabungan';
+            sheetsEstimateText = '~10 Sheets';
+            formulaNote = 'Combined recitation review';
           }
         }
 
@@ -1234,7 +1234,7 @@ export const INITIAL_BUDGET_ALLOCATIONS: BudgetAllocationItem[] = [
   },
   {
     id: 'pos-ortu',
-    name: 'Gift for Parents (Bakti Ortu)',
+    name: 'Gift & Support for Parents',
     categoryType: 'bakti',
     amount: 300000,
     percentage: 15,

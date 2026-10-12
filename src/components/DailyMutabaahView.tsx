@@ -290,7 +290,7 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
               }`}
             >
               <Moon className="w-3.5 h-3.5" />
-              <span>{isHaidhMode ? 'Halangan (Haidh) Aktif' : 'Mode Haidh'}</span>
+              <span>{isHaidhMode ? 'Haidh Mode (Active)' : 'Haidh Mode'}</span>
             </button>
 
             {todayKey && selectedDay !== todayKey && (
@@ -362,10 +362,10 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
         <div className="p-3.5 rounded-2xl bg-[#F4EFEB] border border-[#D9C8BE] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
           <div className="flex items-center gap-2 text-[#5C4538]">
             <span className="px-2 py-0.5 rounded-md bg-[#E4D7CF] font-bold text-[10px] text-[#4A3225]">
-              Exempt · معذورة
+              Haidh · معذورة
             </span>
             <span className="font-semibold">
-              Period Exemption Active: Tilawah of the Mushaf is paused.
+              Haidh Mode Active: Tilawah of the Mushaf is paused. Murojaah (oral revision), Dzikr, and Istighfar remain actively rewarded.
             </span>
           </div>
           <span className="font-arabic text-xs text-[#63483C] shrink-0">رُفِعَ الْحَرَجُ · ذِكْرٌ وَاسْتِغْفَار</span>
@@ -527,7 +527,7 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
               <div className="flex items-center gap-2">
                 {isHaidhMode && (
                   <span className="px-2 py-0.5 rounded-md bg-[#EAEFE8] text-[#2E4729] text-[10px] font-semibold">
-                    Permissible · مباحة
+                    Permissible in Haidh · مباحة
                   </span>
                 )}
                 <span className="font-arabic text-sm text-[#3A4B37]">مراجعة متقنة</span>
@@ -848,9 +848,9 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-[#243023]">
-                  Period Exemption Mode
+                  Haidh Mode
                 </span>
-                <span className="font-arabic text-xs text-[#5A6B57]">عذر شرعي</span>
+                <span className="font-arabic text-xs text-[#5A6B57]">حالة الحيض</span>
                 {isHaidhMode && (
                   <span className="px-2 py-0.5 rounded-md bg-[#8FA28A] text-white text-[10px] font-semibold">
                     Active
@@ -859,8 +859,8 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
               </div>
               <p className="text-[11px] text-[#5A6B57] mt-0.5 leading-relaxed">
                 {isHaidhMode
-                  ? 'Prayers & fasting are religiously excused. Earn abundant rewards through dzikr, istighfar, charity, muhasabah, and study.'
-                  : 'Enable during menstruation so prayers & fasting are automatically exempted without lowering your mutabaah score.'}
+                  ? 'Prayers & fasting are religiously excused during haidh. Earn abundant rewards through dzikr, istighfar, charity, muhasabah, and study.'
+                  : 'Enable during haidh so obligatory prayers & fasting are automatically exempted without lowering your mutabaah score.'}
               </p>
             </div>
           </div>
@@ -874,7 +874,7 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
                 : 'bg-white text-[#243023] border-[#C7D3C0] hover:bg-[#EAEFE8]'
             }`}
           >
-            {isHaidhMode ? 'Period Mode (Active)' : 'Enable Period Mode'}
+            {isHaidhMode ? 'Haidh Mode (Active)' : 'Enable Haidh Mode'}
           </button>
         </div>
 
@@ -936,7 +936,7 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
                   {isExempt ? (
                     <div className="flex items-center gap-1.5 mt-1">
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#E4D7CF] text-[#63483C]">
-                        Exempt (معذورة)
+                        Haidh Exempt (معذورة)
                       </span>
                       <span className="text-[10px] text-[#7A6B60]">Excused by Sharia</span>
                     </div>

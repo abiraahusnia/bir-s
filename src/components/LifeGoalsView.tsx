@@ -151,7 +151,7 @@ export const LifeGoalsView: React.FC<LifeGoalsViewProps> = ({
                 : 'bg-[#F7F4ED] text-[#4A5D46] hover:bg-[#EAE6DC]'
             }`}
           >
-            Vision 10+ Years (10 Tahun+) ({goals.filter((g) => g.horizon === 'sepuluh_tahun').length})
+            Vision 10+ Years ({goals.filter((g) => g.horizon === 'sepuluh_tahun').length})
           </button>
         </div>
       </section>
@@ -186,7 +186,7 @@ export const LifeGoalsView: React.FC<LifeGoalsViewProps> = ({
                 <option value="pendek">Short-Term (1 – 6 Months)</option>
                 <option value="menengah">Medium-Term (6 Months – 2 Years)</option>
                 <option value="panjang">Long-Term (2 – 5 Years)</option>
-                <option value="sepuluh_tahun">Vision (10+ Years / 10+ Tahun)</option>
+                <option value="sepuluh_tahun">Vision (10+ Years)</option>
               </select>
             </div>
 
