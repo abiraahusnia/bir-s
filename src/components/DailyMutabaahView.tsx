@@ -365,7 +365,7 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
               Exempt · معذورة
             </span>
             <span className="font-semibold">
-              Period Exemption Active: Tilawah of the Mushaf is paused. Murojaah (oral revision), Dzikr, and Istighfar remain actively rewarded.
+              Period Exemption Active: Tilawah of the Mushaf is paused.
             </span>
           </div>
           <span className="font-arabic text-xs text-[#63483C] shrink-0">رُفِعَ الْحَرَجُ · ذِكْرٌ وَاسْتِغْفَار</span>
