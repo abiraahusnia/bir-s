@@ -199,7 +199,7 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
 
           {/* TAB 2: ACTIVE DAY BREAKDOWN */}
           {activeTab === 'today' && (
-            <div className="space-y-4 text-xs">
+            <div className="text-xs">
               <div className="p-3.5 rounded-xl bg-white border border-[#C7D3C0] space-y-2.5">
                 
                 {/* Header Info */}
@@ -230,7 +230,7 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
                   </div>
                 )}
 
-                {/* Pages Checklist */}
+                {/* Pages Checklist - Dibuat lebih kecil & padat */}
                 {currentDaySpec.pagesList && currentDaySpec.pagesList.length > 0 && (
                   <div className="pt-1.5">
                     <div className="text-[10px] font-bold text-[#243023] mb-1.5 px-1">Page List:</div>
@@ -247,68 +247,3 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
                   </div>
                 )}
               </div>
-            </div>
-          )}
-
-          {/* TAB 3: TABLE 30 JUZ MUSHAF MADINAH */}
-          {activeTab === 'table' && (
-            <div className="space-y-3 text-xs">
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-[#6E7D6B]" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search Juz number or Surah name..."
-                  className="w-full pl-9 pr-3 py-2 bg-white border border-[#C7D3C0] rounded-xl text-xs text-[#243023] placeholder-[#8A9B85] focus:outline-none"
-                />
-              </div>
-
-              <div className="bg-white rounded-xl border border-[#C7D3C0] overflow-hidden">
-                <div className="grid grid-cols-12 bg-[#F7F4ED] px-3 py-2 font-bold text-[11px] text-[#3A4B37] border-b border-[#C7D3C0]">
-                  <div className="col-span-2">Juz</div>
-                  <div className="col-span-5">Surah Coverage</div>
-                  <div className="col-span-3">Pages</div>
-                  <div className="col-span-2 text-right">Sheets</div>
-                </div>
-
-                <div className="divide-y divide-[#C7D3C0]/40 max-h-[380px] overflow-y-auto">
-                  {filteredJuzList.map((j) => (
-                    <div
-                      key={j.juz}
-                      className="grid grid-cols-12 px-3 py-2.5 items-center hover:bg-[#F7F4ED]/50 transition-colors"
-                    >
-                      <div className="col-span-2 font-bold font-mono text-[#243023]">
-                        Juz {j.juz}
-                      </div>
-                      <div className="col-span-5 text-[#5A6B57] truncate text-[11px]">
-                        {j.surahSummary}
-                      </div>
-                      <div className="col-span-3 font-mono font-semibold text-[#3A4B37] text-[11px]">
-                        p. {j.startPage} – {j.endPage}
-                      </div>
-                      <div className="col-span-2 text-right text-[#5A6B57] text-[11px]">
-                        {Math.round((j.totalPages / 2) * 10) / 10} sheets
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="p-3 sm:p-4 bg-white border-t border-[#C7D3C0] flex justify-end shrink-0">
-          <button
-            type="button"
-            onClick={onClose}
-            className="min-h-[38px] px-5 rounded-xl bg-[#8FA28A] text-white text-xs font-semibold hover:bg-[#7A8E75] transition-colors"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
