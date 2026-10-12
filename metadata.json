@@ -1,0 +1,6 @@
+{
+  "name": "Sakina — Muslimah Life & Quran Planner",
+  "description": "Aplikasi perencanaan harian, mutabaah yaumiyah, jadwal halaqah, kurikulum murojaah 196 hari, target studi S2, dan alur keuangan muslimah.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
