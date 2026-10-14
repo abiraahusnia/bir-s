@@ -63,11 +63,11 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-[#C7D3C0] bg-white/70 px-4 pt-2 gap-2 shrink-0">
+        <div className="flex border-b border-[#C7D3C0] bg-white/70 px-3 sm:px-4 pt-2 gap-1.5 sm:gap-2 shrink-0 overflow-x-auto scrollbar-none max-w-full">
           <button
             type="button"
             onClick={() => setActiveTab('formula')}
-            className={`px-3 py-2 text-xs font-semibold border-b-2 transition-colors ${
+            className={`px-3 py-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'formula'
                 ? 'border-[#8FA28A] text-[#243023]'
                 : 'border-transparent text-[#6E7D6B] hover:text-[#243023]'
@@ -78,7 +78,7 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('today')}
-            className={`px-3 py-2 text-xs font-semibold border-b-2 transition-colors ${
+            className={`px-3 py-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'today'
                 ? 'border-[#8FA28A] text-[#243023]'
                 : 'border-transparent text-[#6E7D6B] hover:text-[#243023]'
@@ -89,7 +89,7 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('table')}
-            className={`px-3 py-2 text-xs font-semibold border-b-2 transition-colors ${
+            className={`px-3 py-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
               activeTab === 'table'
                 ? 'border-[#8FA28A] text-[#243023]'
                 : 'border-transparent text-[#6E7D6B] hover:text-[#243023]'
@@ -101,9 +101,10 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
 
         {/* Content Body */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-          {/* TAB 1: FORMULA */}
+          {/* TAB 1: FORMULA & HOW TO CALCULATE */}
           {activeTab === 'formula' && (
             <div className="space-y-4 text-xs">
+              {/* Highlight Card */}
               <div className="p-4 rounded-xl bg-white border border-[#C7D3C0] space-y-2">
                 <div className="flex items-center gap-2">
                   <HelpCircle className="w-4 h-4 text-[#8FA28A]" />
@@ -121,6 +122,7 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
                 </div>
               </div>
 
+              {/* How Daily Target is Calculated */}
               <div className="p-4 rounded-xl bg-white border border-[#C7D3C0] space-y-3">
                 <h4 className="font-bold text-[#243023] text-sm flex items-center gap-2">
                   <Layers className="w-4 h-4 text-[#8FA28A]" />
@@ -132,27 +134,32 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
                 <div className="p-3 rounded-lg bg-[#EAEFE8] border border-[#C7D3C0] text-center font-mono font-bold text-[#243023] text-xs">
                   Daily Target Pages = 20 Pages ÷ Allocated Days
                 </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                   <div className="p-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1">
                     <span className="font-bold text-[#243023]">2-Day Allocation (Juz 28, 27, 26)</span>
                     <div className="text-[#3A4B37]">20 pages ÷ 2 = <strong>10 pages/day (~5 sheets)</strong></div>
                     <div className="text-[10px] text-[#6E7D6B]">Example: Day 3 (p. 542–551), Day 4 (p. 552–561).</div>
                   </div>
+
                   <div className="p-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1">
                     <span className="font-bold text-[#243023]">4-Day Allocation (Juz 2, 3)</span>
                     <div className="text-[#3A4B37]">20 pages ÷ 4 = <strong>5 pages/day (~2.5 sheets)</strong></div>
                     <div className="text-[10px] text-[#6E7D6B]">Calm &amp; steady: 5 pages per day.</div>
                   </div>
+
                   <div className="p-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1">
                     <span className="font-bold text-[#243023]">5-Day Allocation (Juz 4, 5)</span>
                     <div className="text-[#3A4B37]">20 pages ÷ 5 = <strong>4 pages/day (~2 sheets)</strong></div>
                     <div className="text-[10px] text-[#6E7D6B]">Exactly 2 double-sided sheets per day.</div>
                   </div>
+
                   <div className="p-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1">
                     <span className="font-bold text-[#243023]">6–7 Day Allocation (Juz 6–17)</span>
                     <div className="text-[#3A4B37]">20 pages ÷ 6/7 = <strong>~3 pages/day (~1.5 sheets)</strong></div>
                     <div className="text-[10px] text-[#6E7D6B]">Deep repetition for solid mutqin retention.</div>
                   </div>
+
                   <div className="p-3 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/70 space-y-1 sm:col-span-2">
                     <span className="font-bold text-[#243023]">10-Day Allocation (Juz 21–25)</span>
                     <div className="text-[#3A4B37]">20 pages ÷ 10 = <strong>2 pages/day (1 double-sided sheet)</strong></div>
@@ -161,6 +168,7 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
                 </div>
               </div>
 
+              {/* Prayer Times Strategy */}
               <div className="p-4 rounded-xl bg-white border border-[#C7D3C0] space-y-2">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-[#8FA28A]" />
@@ -178,7 +186,7 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
                   </div>
                   <div className="p-2.5 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/60">
                     <div className="font-bold text-[#243023]">Target 5 Pages:</div>
-                    <div className="text-[#5A6B57] mt-0.5">1 page after each prayer. Seamless and stress-free!</div>
+                    <div className="text-[#5A6B57] mt-0.5">1 page after each obligatory prayer. Seamless and stress-free!</div>
                   </div>
                   <div className="p-2.5 rounded-lg bg-[#F7F4ED] border border-[#C7D3C0]/60">
                     <div className="font-bold text-[#243023]">Target 2 Pages:</div>
@@ -191,41 +199,42 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
 
           {/* TAB 2: ACTIVE DAY BREAKDOWN */}
           {activeTab === 'today' && (
-            <div className="text-xs">
-              <div className="p-3.5 rounded-xl bg-white border border-[#C7D3C0] space-y-2.5">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className="text-[10px] text-[#5A6B57] font-medium tracking-wide uppercase">
-                      Target Day {currentDaySpec.day} of 196 • {currentDaySpec.targetLabel.split(':')[0]}
+            <div className="space-y-4 text-xs min-w-0 max-w-full overflow-hidden">
+              <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-[#C7D3C0] space-y-3 min-w-0 max-w-full overflow-hidden">
+                <div className="flex flex-wrap items-center justify-between gap-1.5">
+                  <div className="min-w-0">
+                    <span className="text-[11px] text-[#5A6B57] font-mono">
+                      Milestone Day {currentDaySpec.day} of 196
                     </span>
-                    <h4 className="text-lg font-bold text-[#243023] leading-tight">
-                      {currentDaySpec.targetLabel.includes(':') ? currentDaySpec.targetLabel.split(':')[1] : currentDaySpec.targetLabel}
+                    <h4 className="text-base font-bold text-[#243023] mt-0.5 break-words">
+                      {currentDaySpec.targetLabel}
                     </h4>
                   </div>
-                  <span className="px-2 py-1 rounded-md bg-[#EAEFE8] text-[#3A4B37] font-semibold text-[10px] shrink-0 text-right">
+                  <span className="px-2.5 py-1 rounded-lg bg-[#EAEFE8] text-[#243023] font-semibold text-xs shrink-0">
                     {currentDaySpec.sheetsEstimateText}
                   </span>
                 </div>
 
-                <div className="px-3 py-2 rounded-lg bg-[#F7F4ED] border border-[#EAEFE8] flex items-center justify-between">
-                  <span className="text-[#3A4B37] font-medium">Madinah Mushaf Pages:</span>
-                  <span className="font-mono font-bold text-sm text-[#243023]">{currentDaySpec.pageRangeText}</span>
-                </div>
-
-                {currentDaySpec.formulaNote && (
-                  <div className="text-[10px] text-[#5A6B57] leading-snug px-1">
+                <div className="p-3.5 rounded-xl bg-[#F7F4ED] border border-[#C7D3C0] space-y-1.5 min-w-0 max-w-full overflow-hidden">
+                  <div className="text-[11px] text-[#5A6B57]">Madinah Mushaf Pages:</div>
+                  <div className="text-xl font-extrabold font-mono text-[#243023] break-all">
+                    {currentDaySpec.pageRangeText}
+                  </div>
+                  <div className="text-[11px] text-[#5A6B57] leading-relaxed break-words">
                     {currentDaySpec.formulaNote}
                   </div>
-                )}
+                </div>
 
                 {currentDaySpec.pagesList && currentDaySpec.pagesList.length > 0 && (
-                  <div className="pt-1.5">
-                    <div className="text-[10px] font-bold text-[#243023] mb-1.5 px-1">Page List:</div>
-                    <div className="flex flex-wrap gap-1">
+                  <div className="space-y-1.5 pt-1">
+                    <div className="text-[11px] font-bold text-[#243023]">
+                      Checklist Pages to Open Today:
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
                       {currentDaySpec.pagesList.map((pageNum) => (
                         <span
                           key={pageNum}
-                          className="w-10 py-0.5 text-center rounded bg-white border border-[#C7D3C0] font-mono text-[10px] font-medium text-[#3A4B37]"
+                          className="px-2.5 py-1 rounded-md bg-[#F7F4ED] border border-[#C7D3C0] font-mono font-semibold text-[#243023]"
                         >
                           p.{pageNum}
                         </span>
@@ -237,9 +246,9 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
             </div>
           )}
 
-          {/* TAB 3: TABLE 30 JUZ */}
+          {/* TAB 3: TABLE 30 JUZ MUSHAF MADINAH */}
           {activeTab === 'table' && (
-            <div className="space-y-3 text-xs">
+            <div className="space-y-3 text-xs min-w-0 max-w-full overflow-hidden">
               <div className="relative">
                 <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-[#6E7D6B]" />
                 <input
@@ -251,15 +260,16 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
                 />
               </div>
 
-              <div className="bg-white rounded-xl border border-[#C7D3C0] overflow-hidden">
-                <div className="grid grid-cols-12 bg-[#F7F4ED] px-3 py-2 font-bold text-[11px] text-[#3A4B37] border-b border-[#C7D3C0]">
-                  <div className="col-span-2">Juz</div>
-                  <div className="col-span-5">Surah Coverage</div>
-                  <div className="col-span-3">Pages</div>
-                  <div className="col-span-2 text-right">Sheets</div>
-                </div>
+              <div className="bg-white rounded-xl border border-[#C7D3C0] overflow-x-auto">
+                <div className="min-w-[420px]">
+                  <div className="grid grid-cols-12 bg-[#F7F4ED] px-3 py-2 font-bold text-[11px] text-[#3A4B37] border-b border-[#C7D3C0]">
+                    <div className="col-span-2">Juz</div>
+                    <div className="col-span-5">Surah Coverage</div>
+                    <div className="col-span-3">Pages</div>
+                    <div className="col-span-2 text-right">Sheets</div>
+                  </div>
 
-                <div className="divide-y divide-[#C7D3C0]/40 max-h-[380px] overflow-y-auto">
+                  <div className="divide-y divide-[#C7D3C0]/40 max-h-[380px] overflow-y-auto">
                   {filteredJuzList.map((j) => (
                     <div
                       key={j.juz}
@@ -282,7 +292,8 @@ export const MushafPageGuideModal: React.FC<MushafPageGuideModalProps> = ({
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        )}
         </div>
 
         {/* Footer */}

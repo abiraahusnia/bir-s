@@ -18,7 +18,7 @@ export const DAYS_OF_WEEK: DayInfo[] = [
     short: 'Sun',
     isFlexibleMorning: true,
     isFlexibleEvening: false,
-    summaryNote: 'Morning flexible (No morning halaqah) · Evening Halaqah 18:00–21:00 active again',
+    summaryNote: 'Morning flexible · Tilawah & Nap · Evening Halaqah 18:00–21:00',
   },
   {
     key: 'senin',
@@ -27,7 +27,7 @@ export const DAYS_OF_WEEK: DayInfo[] = [
     short: 'Mon',
     isFlexibleMorning: false,
     isFlexibleEvening: false,
-    summaryNote: 'Morning & Evening Halaqah · Sunnah Fasting · English Grammar #1',
+    summaryNote: 'Morning Halaqah · Private Teaching 08:00–10:30 · Nap 11:00 · English Grammar #1 · Evening Halaqah',
   },
   {
     key: 'selasa',
@@ -36,7 +36,7 @@ export const DAYS_OF_WEEK: DayInfo[] = [
     short: 'Tue',
     isFlexibleMorning: false,
     isFlexibleEvening: false,
-    summaryNote: "Morning & Evening Halaqah · Women's Fiqh Study (1x/week)",
+    summaryNote: 'Morning Halaqah · Private Teaching 08:00–10:30 · Nap 11:00 · Women’s Fiqh · Evening Halaqah',
   },
   {
     key: 'rabu',
@@ -45,7 +45,7 @@ export const DAYS_OF_WEEK: DayInfo[] = [
     short: 'Wed',
     isFlexibleMorning: false,
     isFlexibleEvening: false,
-    summaryNote: 'Morning & Evening Halaqah · IELTS Practice #2',
+    summaryNote: 'Morning Halaqah · Private Teaching 08:00–10:30 · Nap 11:00 · IELTS Practice #2 · Evening Halaqah',
   },
   {
     key: 'kamis',
@@ -54,7 +54,7 @@ export const DAYS_OF_WEEK: DayInfo[] = [
     short: 'Thu',
     isFlexibleMorning: false,
     isFlexibleEvening: false,
-    summaryNote: 'Morning & Evening Halaqah · Sunnah Fasting · Master’s & Scholarship Research',
+    summaryNote: 'Morning Halaqah · Private Teaching 08:00–10:30 · Nap 11:00 · S2 Research · Evening Halaqah',
   },
   {
     key: 'jumat',
@@ -63,7 +63,7 @@ export const DAYS_OF_WEEK: DayInfo[] = [
     short: 'Fri',
     isFlexibleMorning: false,
     isFlexibleEvening: false,
-    summaryNote: 'Morning & Evening Halaqah · Surah Al-Kahfi · English Prep #3',
+    summaryNote: 'Morning Halaqah · Surah Al-Kahfi · Nap 11:00 · English Prep #3 · Evening Halaqah',
   },
   {
     key: 'sabtu',
@@ -72,7 +72,7 @@ export const DAYS_OF_WEEK: DayInfo[] = [
     short: 'Sat',
     isFlexibleMorning: false,
     isFlexibleEvening: true,
-    summaryNote: 'Morning Halaqah active · After 06:30 flexible (No evening halaqah) · Marriage & Parenting podcast',
+    summaryNote: 'Morning Halaqah · Weekend Study & Nap · Evening family time (No evening halaqah)',
   },
 ];
 
@@ -86,219 +86,309 @@ export interface ScheduleSlot {
   isFixedHalaqah?: boolean;
 }
 
+export function parseSlotTimeRange(timeRange: string): { startMins: number; endMins: number } | null {
+  if (!timeRange) return null;
+  const normalized = timeRange.replace(/[–—]/g, '-').trim();
+
+  // 12-hour AM/PM format support: e.g. "08:00 AM - 10:30 AM" or "8:00am - 10:30pm"
+  const ampmRegex = /(\d{1,2}):(\d{2})\s*(AM|PM)?\s*-\s*(\d{1,2}):(\d{2})\s*(AM|PM)?/i;
+  const match = normalized.match(ampmRegex);
+  if (!match) return null;
+
+  const startH = parseInt(match[1], 10);
+  const startM = parseInt(match[2], 10);
+  let startPeriod = match[3] ? (match[3].toUpperCase() as 'AM' | 'PM') : null;
+
+  const endH = parseInt(match[4], 10);
+  const endM = parseInt(match[5], 10);
+  let endPeriod = match[6] ? (match[6].toUpperCase() as 'AM' | 'PM') : null;
+
+  if (!startPeriod && endPeriod) {
+    if (endPeriod === 'PM') {
+      startPeriod = (startH >= 12 || startH < endH) ? 'PM' : 'AM';
+    } else {
+      startPeriod = 'AM';
+    }
+  }
+
+  const toMins = (h: number, m: number, period: 'AM' | 'PM' | null): number => {
+    if (period === 'AM') {
+      return (h === 12 ? 0 : h) * 60 + m;
+    } else if (period === 'PM') {
+      return (h === 12 ? 12 : h + 12) * 60 + m;
+    }
+    return h * 60 + m;
+  };
+
+  const startMins = toMins(startH, startM, startPeriod);
+  let endMins = toMins(endH, endM, endPeriod);
+
+  if (endMins < startMins) {
+    endMins += 24 * 60;
+  }
+  return { startMins, endMins };
+}
+
+export function formatTimeRangeToAmPm(timeRange: string): string {
+  if (!timeRange) return '';
+  const parsed = parseSlotTimeRange(timeRange);
+  if (!parsed) return timeRange;
+
+  const minsToAmPm = (mins: number) => {
+    const normalized = mins % (24 * 60);
+    const h24 = Math.floor(normalized / 60);
+    const m = normalized % 60;
+    const period = h24 >= 12 ? 'PM' : 'AM';
+    let h12 = h24 % 12;
+    if (h12 === 0) h12 = 12;
+    const hStr = h12.toString().padStart(2, '0');
+    const mStr = m.toString().padStart(2, '0');
+    return `${hStr}:${mStr} ${period}`;
+  };
+
+  return `${minsToAmPm(parsed.startMins)} – ${minsToAmPm(parsed.endMins)}`;
+}
+
 export function getDailyScheduleForDay(day: DayKey): ScheduleSlot[] {
   const isSabtu = day === 'sabtu';
   const isMinggu = day === 'minggu';
   const isJumat = day === 'jumat';
+  const isMonToThu = ['senin', 'selasa', 'rabu', 'kamis'].includes(day);
 
   const slots: ScheduleSlot[] = [
     {
       id: `${day}-1`,
-      timeRange: '04:15 – 04:30',
-      title: 'Wake Up, Tahajjud & Pre-dawn Istighfar',
-      arabicTitle: 'الاستيقاظ، التهجد والاستغفار',
-      subtitle: 'Qiyamul Lail at least 2 rak’ahs + Witr & heartfelt du’a at Sahur time',
+      timeRange: '04:15 AM – 04:30 AM',
+      title: 'Wake Up & Tahajjud',
+      arabicTitle: 'الاستيقاظ والتهجد',
+      subtitle: 'Tahajjud prayer, Witr & pre-dawn istighfar (Wake up 04:40 AM during Haidh)',
       category: 'ibadah',
     },
     {
       id: `${day}-2`,
-      timeRange: '04:30 – 04:55',
-      title: 'Fajr Sunnah Prayer, Fajr & Morning Dzikr',
-      arabicTitle: 'سنة الفجر، صلاة الصبح وأذكار الصباح',
-      subtitle: isJumat
-        ? '2 rak’ahs before Fajr, on-time Fajr prayer, Morning Dzikr & start Surah Al-Kahfi'
-        : '2 rak’ahs before Fajr, on-time Fajr prayer & Morning Dzikr',
+      timeRange: '04:30 AM – 04:55 AM',
+      title: 'Fajr Prayer & Dzikr',
+      arabicTitle: 'سنة الفجر وأذكار الصباح',
+      subtitle: '2 rak’ahs sunnah before Fajr, on-time Fajr & authentic morning dzikr',
       category: 'ibadah',
     },
   ];
 
-  // Morning Halaqah vs Sunday Morning Flexible
+  // Morning Halaqah or Sunday Flexible
   if (isMinggu) {
     slots.push(
       {
         id: `${day}-3`,
-        timeRange: '05:15 – 06:30',
-        title: 'Flexible Morning (No Morning Halaqah)',
+        timeRange: '05:15 AM – 06:30 AM',
+        title: 'Flexible Morning',
         arabicTitle: 'صباح مرن ومريح',
-        subtitle: 'Self-paced tilawah 1 Juz, calm murojaah at home, or morning walk with family',
+        subtitle: 'Self-paced morning reading or quiet reflection (No morning halaqah)',
         category: 'fleksibel',
       },
       {
         id: `${day}-4`,
-        timeRange: '06:30 – 08:30',
-        title: 'Morning Workout, Dhuha Prayer & Breakfast',
-        arabicTitle: 'رياضة الصباح، صلاة الضحى والفطور',
-        subtitle: 'Light stretching, 4 rak’ahs Dhuha & warm quality time with parents',
+        timeRange: '06:30 AM – 08:00 AM',
+        title: 'Prep, Shower & Dhuha',
+        arabicTitle: 'صلاة الضحى والفطور',
+        subtitle: 'Shower, Dhuha prayer, relaxed family breakfast & weekend rest',
         category: 'ibadah',
+      },
+      {
+        id: `${day}-5`,
+        timeRange: '08:00 AM – 10:30 AM',
+        title: 'Family Time & Rest',
+        arabicTitle: 'وقت عائلي هادئ',
+        subtitle: 'Quality time with family, quiet reading or resting at home',
+        category: 'fleksibel',
       }
     );
   } else {
+    // Mon - Sat morning halaqah
     slots.push(
       {
         id: `${day}-3`,
-        timeRange: '04:55 – 05:15',
-        title: 'Morning Halaqah Prep & Review',
+        timeRange: '04:55 AM – 05:15 AM',
+        title: 'Halaqah Prep',
         arabicTitle: 'الاستعداد لحلقة القرآن',
-        subtitle: 'Review student notes, recitation materials & quiet murojaah before halaqah',
+        subtitle: 'Review student notes, recitation materials & brief murojaah',
         category: 'halaqah',
       },
       {
         id: `${day}-4`,
-        timeRange: '05:15 – 06:30',
-        title: 'Teaching Quran Halaqah (Morning Session)',
+        timeRange: '05:15 AM – 06:30 AM',
+        title: 'Teaching Quran Halaqah',
         arabicTitle: 'تعليم حلقة القرآن (الصباح)',
-        subtitle: 'Listening to students recitation, morning tahsin & tahfizh (Fixed Schedule)',
+        subtitle: 'Morning Quran halaqah session with students (Fixed Schedule)',
         category: 'halaqah',
         isFixedHalaqah: true,
       },
       {
-        id: `${day}-6`,
-        timeRange: '06:30 – 08:00',
-        title: 'Light Workout, Dhuha Prayer & Breakfast',
-        arabicTitle: 'رياضة خفيفة، الضحى والإفطار',
-        subtitle: '15–20 mins stretching, Dhuha prayer & relaxed breakfast at home',
+        id: `${day}-5`,
+        timeRange: '06:30 AM – 08:00 AM',
+        title: 'Prep, Shower & Dhuha',
+        arabicTitle: 'الاستعداد، الاغتسال والضحى',
+        subtitle: 'Arrive home, freshen up, shower, Dhuha prayer & prep for private teaching',
         category: 'ibadah',
       }
     );
+
+    // Private Teaching: ONLY Monday - Thursday (08:00 AM – 10:30 AM)
+    if (isMonToThu) {
+      slots.push({
+        id: `${day}-6`,
+        timeRange: '08:00 AM – 10:30 AM',
+        title: 'Private Teaching',
+        arabicTitle: 'تعليم القرآن الخاص',
+        subtitle: 'Private teaching session (12–15 min travel to location)',
+        category: 'halaqah',
+      });
+    } else if (isJumat) {
+      slots.push({
+        id: `${day}-6`,
+        timeRange: '08:00 AM – 10:30 AM',
+        title: 'Surah Al-Kahfi & Sunnah',
+        arabicTitle: 'سورة الكهف وسنن الجمعة',
+        subtitle: 'Recite Surah Al-Kahfi, salawat & Friday morning reflection',
+        category: 'ibadah',
+      });
+    } else if (isSabtu) {
+      slots.push({
+        id: `${day}-6`,
+        timeRange: '08:00 AM – 10:30 AM',
+        title: 'Weekend Study & Family',
+        arabicTitle: 'دراسة مرنة ووقت الأسرة',
+        subtitle: 'Flexible morning study, Islamic parenting podcast & family time',
+        category: 'fleksibel',
+      });
+    }
   }
 
-  // Midday & Afternoon blocks
+  // Midday Clean Up & Sunnah Nap until Dhuhr (All days)
+  slots.push(
+    {
+      id: `${day}-nap-prep`,
+      timeRange: '10:30 AM – 11:00 AM',
+      title: 'Clean Up & Refresh',
+      arabicTitle: 'ترتيب واسترخاء',
+      subtitle: 'Tidy up, clean up and unwind after teaching session',
+      category: 'istirahat',
+    },
+    {
+      id: `${day}-nap`,
+      timeRange: '11:00 AM – 12:00 PM',
+      title: 'Midday Nap (Qailulah)',
+      arabicTitle: 'قيلولة قبل الظهر',
+      subtitle: 'Sunnah restorative nap before Dhuhr for afternoon vitality',
+      category: 'istirahat',
+    },
+    {
+      id: `${day}-7`,
+      timeRange: '12:00 PM – 01:00 PM',
+      title: 'Dhuhr Prayer & Lunch',
+      arabicTitle: 'صلاة الظهر والغداء',
+      subtitle: 'On-time Dhuhr prayer with Qabliyah & Ba’diyah rawatib, followed by lunch',
+      category: 'ibadah',
+    }
+  );
+
+  // Afternoon Plot (01:00 PM – 06:00 PM): Tilawah, Murojaah, Focused Study & Asr
+  slots.push(
+    {
+      id: `${day}-8`,
+      timeRange: '01:00 PM – 02:15 PM',
+      title: 'Daily Tilawah & Murojaah',
+      arabicTitle: 'تلاوة جزء ومراجعة القرآن',
+      subtitle: 'Reciting 1 Juz daily and structured review on 196-Day Murojaah roadmap',
+      category: 'ibadah',
+    },
+    {
+      id: `${day}-9`,
+      timeRange: '02:15 PM – 03:30 PM',
+      title: 'Focused Study & Prep',
+      arabicTitle: 'جلسة التعلم والتحضير',
+      subtitle:
+        day === 'senin'
+          ? 'Master’s Academic English (Grammar Foundation #1)'
+          : day === 'selasa'
+          ? 'Women’s Fiqh Study (Fiqh An-Nisa notes)'
+          : day === 'rabu'
+          ? 'Master’s English Prep (IELTS Practice #2)'
+          : day === 'kamis'
+          ? 'Master’s (S2) & Scholarship Opportunity Research'
+          : isJumat
+          ? 'Academic English Review & Synthesis #3'
+          : isSabtu
+          ? 'Islamic Parenting & Pre-marital Family Study'
+          : 'Self-Paced Learning & Book Reading',
+      category: 'belajar',
+    },
+    {
+      id: `${day}-10`,
+      timeRange: '03:30 PM – 04:30 PM',
+      title: 'Asr Prayer & Evening Dzikr',
+      arabicTitle: 'صلاة العصر وأذكار المساء',
+      subtitle: 'On-time Asr prayer & authentic evening dzikr',
+      category: 'ibadah',
+    },
+    {
+      id: `${day}-11`,
+      timeRange: '04:30 PM – 06:00 PM',
+      title: 'Rest & Halaqah Prep',
+      arabicTitle: 'استراحة والاستعداد للمساء',
+      subtitle: 'Afternoon tea/snack, reviewing student notes & halaqah readiness',
+      category: 'fleksibel',
+    }
+  );
+
+  // Evening Block (06:00 PM – 09:00 PM)
   if (isSabtu) {
     slots.push(
       {
-        id: `${day}-7`,
-        timeRange: '08:00 – 11:00',
-        title: 'Flexible Saturday: Tilawah 1 Juz & Study / Podcast',
-        arabicTitle: 'تلاوة جزء وبودكاست الأسرة',
-        subtitle: 'Self-paced tilawah, murojaah, and listening to marriage & parenting podcast',
-        category: 'fleksibel',
-      },
-      {
-        id: `${day}-nap`,
-        timeRange: '11:00 – 12:00',
-        title: 'Midday Nap (Sunnah Qailulah)',
-        arabicTitle: 'قيلولة قبل الظهر',
-        subtitle: 'Refreshing sunnah nap before Dhuhr prayer for afternoon vitality',
-        category: 'istirahat',
-      },
-      {
-        id: `${day}-8`,
-        timeRange: '12:00 – 13:00',
-        title: 'Dhuhr Prayer (Qabliyah & Ba’diyah) & Lunch',
-        arabicTitle: 'صلاة الظهر والغداء',
-        subtitle: 'On-time Dhuhr prayer + 2-4 rak’ahs Qabliyah and 2 rak’ahs Ba’diyah rawatib',
-        category: 'ibadah',
-      },
-      {
-        id: `${day}-9`,
-        timeRange: '13:00 – 17:30',
-        title: 'Flexible Weekend Afternoon (No Evening Halaqah)',
-        arabicTitle: 'وقت مرن ومساء عائلي',
-        subtitle: 'Free time to hang out with friends, study S2 materials, or rest with parents',
-        category: 'fleksibel',
-      },
-      {
-        id: `${day}-10`,
-        timeRange: '17:30 – 18:30',
-        title: 'Maghrib Prayer & Evening Dzikr',
+        id: `${day}-12`,
+        timeRange: '05:30 PM – 06:30 PM',
+        title: 'Maghrib Prayer & Dzikr',
         arabicTitle: 'صلاة المغرب وأذكار المساء',
-        subtitle: 'Maghrib prayer + 2 rak’ahs Ba’diyah Rawatib and evening dzikr at home',
-        category: 'ibadah',
-      },
-      {
-        id: `${day}-11`,
-        timeRange: '18:30 – 21:00',
-        title: 'Relaxed Family Time & Reading',
-        arabicTitle: 'وقت هادئ مع الأهل',
-        subtitle: 'Peaceful Saturday night with parents, self-study or light Quran revision',
-        category: 'fleksibel',
-      }
-    );
-  } else {
-    // Weekdays & Sunday
-    slots.push(
-      {
-        id: `${day}-7`,
-        timeRange: '08:00 – 09:30',
-        title: 'Daily Tilawah (1 Juz) & Quran Murojaah',
-        arabicTitle: 'تلاوة جزء ومراجعة القرآن',
-        subtitle: 'Reciting 1 juz daily and active murojaah according to 196-day roadmap',
-        category: 'ibadah',
-      },
-      {
-        id: `${day}-8`,
-        timeRange: '09:30 – 11:00',
-        title: isJumat
-          ? 'Surah Al-Kahfi & Master’s (S2) English Prep #3'
-          : day === 'selasa'
-          ? "Women's Fiqh Study & Self-Paced Notes"
-          : day === 'kamis'
-          ? 'Master’s (S2) & Scholarship Opportunity Research'
-          : 'Focused Study: Grammar / IELTS / Academic English',
-        arabicTitle: 'جلسة التعلم والتحضير',
-        subtitle: 'High-focus study session with coffee/tea and notes',
-        category: 'belajar',
-      },
-      {
-        id: `${day}-nap`,
-        timeRange: '11:00 – 12:00',
-        title: 'Midday Nap (Sunnah Qailulah)',
-        arabicTitle: 'قيلولة قبل الظهر',
-        subtitle: 'Recharge with sunnah nap before Dhuhr prayer for maximum evening energy',
-        category: 'istirahat',
-      },
-      {
-        id: `${day}-9`,
-        timeRange: '12:00 – 13:00',
-        title: 'Dhuhr Prayer (Qabliyah & Ba’diyah) & Lunch',
-        arabicTitle: 'صلاة الظهر والرواتب والغداء',
-        subtitle: 'On-time Dhuhr prayer + 2-4 rak’ahs Qabliyah and 2 rak’ahs Ba’diyah rawatib',
-        category: 'ibadah',
-      },
-      {
-        id: `${day}-10`,
-        timeRange: '13:00 – 15:30',
-        title: 'Productive Work & Rest Block',
-        arabicTitle: 'أعمال منتجة وقراءة',
-        subtitle: 'Preparing teaching notes, reviewing lesson plans, reading or helping parents',
-        category: 'fleksibel',
-      },
-      {
-        id: `${day}-11`,
-        timeRange: '15:30 – 18:00',
-        title: 'Asr Prayer, Evening Dzikr & Halaqah Prep',
-        arabicTitle: 'صلاة العصر وأذكار المساء',
-        subtitle: 'On-time Asr prayer, Evening Dzikr, lesson prep & halaqah readiness',
+        subtitle: 'On-time Maghrib prayer with Ba’diyah rawatib',
         category: 'ibadah',
       },
       {
         id: `${day}-13`,
-        timeRange: '18:00 – 21:00',
-        title: 'Teaching Quran Halaqah (Evening Session)',
-        arabicTitle: 'تعليم حلقة القرآن (المساء)',
-        subtitle: 'Teaching evening halaqah, Maghrib & Isha prayers with rawatib (Fixed Schedule)',
-        category: 'halaqah',
-        isFixedHalaqah: true,
+        timeRange: '06:30 PM – 09:00 PM',
+        title: 'Family Time & Reading',
+        arabicTitle: 'وقت هادئ مع الأهل',
+        subtitle: 'Peaceful Saturday evening with parents & light reading (No evening halaqah)',
+        category: 'fleksibel',
       }
     );
+  } else {
+    // Weekdays & Sunday Evening Halaqah
+    slots.push({
+      id: `${day}-13`,
+      timeRange: '06:00 PM – 09:00 PM',
+      title: 'Teaching Quran Halaqah',
+      arabicTitle: 'تعليم حلقة القرآن (المساء)',
+      subtitle: 'Evening halaqah session, Maghrib & Isha prayers with rawatib (Fixed Schedule)',
+      category: 'halaqah',
+      isFixedHalaqah: true,
+    });
   }
 
   // Closing Night Routine (All days)
   slots.push(
     {
       id: `${day}-night-1`,
-      timeRange: '21:00 – 22:00',
-      title: 'Night Muhasabah & Tomorrow’s Prep',
+      timeRange: '09:00 PM – 10:00 PM',
+      title: 'Night Muhasabah & Prep',
       arabicTitle: 'محاسبة النفس والاستعداد',
       subtitle: 'Review mutabaah checklist, closing istighfar, wudhu & sunnah sleep dzikr',
       category: 'ibadah',
     },
     {
       id: `${day}-night-2`,
-      timeRange: '22:00 – 22:30',
-      title: 'Healthy Bedtime Sleep',
+      timeRange: '10:00 PM – 10:30 PM',
+      title: 'Bedtime Sleep',
       arabicTitle: 'النوم المبكر',
-      subtitle: 'Sleep early so you wake up refreshed at 04:15 for Tahajjud',
+      subtitle: 'Sleep early so you wake up refreshed at 04:15 AM (or 04:40 AM during Haidh)',
       category: 'istirahat',
     }
   );
@@ -394,8 +484,17 @@ export const MUTABAAH_ITEMS: MutabaahItem[] = [
     title: 'Daily Tilawah (1 Juz+)',
     arabicTitle: 'تلاوة جزء من القرآن',
     targetText: 'Target min 1 Juz (>= 20 pages)',
-    timeHint: '08:00 – 09:00',
+    timeHint: '08:00 AM – 09:00 AM',
     group: 'Quran',
+    isExemptDuringHaidh: true,
+  },
+  {
+    id: 'puasa',
+    title: 'Sunnah Fasting',
+    arabicTitle: 'صيام التطوع',
+    targetText: 'Mon & Thu / Ayyamul Bidh',
+    timeHint: 'Fajr – Maghrib',
+    group: 'Prayers & Qiyam',
     isExemptDuringHaidh: true,
   },
   {
@@ -403,7 +502,7 @@ export const MUTABAAH_ITEMS: MutabaahItem[] = [
     title: 'Quran Murojaah',
     arabicTitle: 'مراجعة القرآن الكريم',
     targetText: 'According to 196-Day Roadmap',
-    timeHint: '09:00 – 10:00',
+    timeHint: '09:00 AM – 10:00 AM',
     group: 'Quran',
     isExemptDuringHaidh: false,
   },
@@ -412,7 +511,7 @@ export const MUTABAAH_ITEMS: MutabaahItem[] = [
     title: 'Morning Dzikr',
     arabicTitle: 'أذكار الصباح',
     targetText: 'After Fajr or during morning routine',
-    timeHint: '04:45 – 05:15',
+    timeHint: '04:45 AM – 05:15 AM',
     group: 'Dzikr & Deeds',
     isExemptDuringHaidh: false,
   },
@@ -421,7 +520,7 @@ export const MUTABAAH_ITEMS: MutabaahItem[] = [
     title: 'Evening Dzikr',
     arabicTitle: 'أذكار المساء',
     targetText: 'After Asr prayer',
-    timeHint: '15:30 – 16:00',
+    timeHint: '03:30 PM – 04:00 PM',
     group: 'Dzikr & Deeds',
     isExemptDuringHaidh: false,
   },
@@ -444,20 +543,11 @@ export const MUTABAAH_ITEMS: MutabaahItem[] = [
     isExemptDuringHaidh: false,
   },
   {
-    id: 'puasa',
-    title: 'Sunnah Fasting',
-    arabicTitle: 'صيام التطوع',
-    targetText: 'Mon & Thu / Ayyamul Bidh',
-    timeHint: 'Fajr – Maghrib',
-    group: 'Dzikr & Deeds',
-    isExemptDuringHaidh: true,
-  },
-  {
     id: 'olahraga',
     title: 'Workout & Stretching',
     arabicTitle: 'الرياضة والحركة',
     targetText: '15–30 mins walk/stretching',
-    timeHint: '06:50 – 07:20',
+    timeHint: '06:50 AM – 07:20 AM',
     group: 'Wellness & Habits',
     isExemptDuringHaidh: false,
   },
@@ -466,7 +556,7 @@ export const MUTABAAH_ITEMS: MutabaahItem[] = [
     title: 'Bedtime Muhasabah',
     arabicTitle: 'محاسبة النفس والشكر',
     targetText: 'Self-reflection & forgiving others',
-    timeHint: '21:30 – 22:00',
+    timeHint: '09:30 PM – 10:00 PM',
     group: 'Wellness & Habits',
     isExemptDuringHaidh: false,
   },
@@ -847,7 +937,7 @@ export const INITIAL_WEEKLY_TARGETS: WeeklyTargetItem[] = [
     category: 'Family & Marriage',
     targetSessions: 1,
     completedSessions: 1,
-    recommendedDay: 'Saturday Morning/Afternoon (Flexible time)',
+    recommendedDay: 'Saturday Afternoon (02:15 PM – 03:30 PM)',
     methodSuggestion: 'Pre-marital podcast, family psychology lectures, or prophetic parenting books',
     notes: 'Key episode: Building harmonious sakinah communication & mindful parenting mindset.',
   },
@@ -857,7 +947,7 @@ export const INITIAL_WEEKLY_TARGETS: WeeklyTargetItem[] = [
     category: 'Shariah',
     targetSessions: 1,
     completedSessions: 1,
-    recommendedDay: 'Tuesday (10:00 – 11:30)',
+    recommendedDay: 'Tuesday Afternoon (02:15 PM – 03:30 PM)',
     methodSuggestion: 'Fiqhus Sunnah lin Nisa / Ustadhah lectures on Thaharah & Islamic women’s rulings',
     notes: 'Chapter on rulings of menses, istihadhah, nifas, and making up missed prayers.',
   },
@@ -867,7 +957,7 @@ export const INITIAL_WEEKLY_TARGETS: WeeklyTargetItem[] = [
     category: 'Master’s (S2) Prep',
     targetSessions: 3,
     completedSessions: 2,
-    recommendedDay: 'Monday, Wednesday & Friday (10:00 – 11:30)',
+    recommendedDay: 'Mon, Wed & Fri Afternoon (02:15 PM – 03:30 PM)',
     methodSuggestion: 'Session 1: Complex Grammar · Session 2: Academic Reading/Listening · Session 3: IELTS Writing',
     notes: 'Aiming for IELTS band 6.5–7.0. Current focus: Academic vocabulary & coherence in essays.',
   },
@@ -877,9 +967,9 @@ export const INITIAL_WEEKLY_TARGETS: WeeklyTargetItem[] = [
     category: 'Master’s (S2) Prep',
     targetSessions: 1,
     completedSessions: 0,
-    recommendedDay: 'Thursday (10:00 – 11:30)',
+    recommendedDay: 'Thursday Afternoon (02:15 PM – 03:30 PM)',
     methodSuggestion: 'Research university requirements, unconditional LoA guidelines & scholarship timeline',
-    notes: 'Comparing Islamic Education / Arabic / Islamic Studies curriculum across 3 target universities.',
+    notes: 'Comparing Islamic Education / Arabic / Islamic Studies curriculum across target universities.',
   },
   {
     id: 'wk-alkahfi',
@@ -887,9 +977,9 @@ export const INITIAL_WEEKLY_TARGETS: WeeklyTargetItem[] = [
     category: 'Friday Worship',
     targetSessions: 1,
     completedSessions: 1,
-    recommendedDay: 'Thursday Night or Friday Morning',
+    recommendedDay: 'Thursday Night or Friday Morning (08:00 AM – 10:30 AM)',
     methodSuggestion: '110 Verses of Surah Al-Kahfi + abundant salawat & Friday afternoon du’a',
-    notes: 'Read peacefully after Fajr before heading to teach the morning halaqah.',
+    notes: 'Read with tranquility after morning halaqah.',
   },
 ];
 
@@ -960,9 +1050,9 @@ export const INITIAL_ANNUAL_ROADMAP: AnnualQuarterPlan[] = [
     period: 'Months 1 – 3',
     theme: 'Habit Foundation, Murojaah Phases 1–3 & Grammar Mastery',
     items: [
-      { id: 'q1-1', text: 'Wake up 04:15 & sleep 22:00 with >85% consistency', done: true },
+      { id: 'q1-1', text: 'Wake up 04:15 (or 04:40 during Haidh) & sleep 22:00 with >85% consistency', done: true },
       { id: 'q1-2', text: 'Complete Murojaah Phase 1 (Juz 26–30), Phase 2 (Juz 1–5) & Phase 3 (Juz 6–10)', done: false },
-      { id: 'q1-3', text: 'Finish Academic Grammar foundation modules', done: true },
+      { id: 'q1-3', text: 'Finish Academic Grammar foundation modules in afternoon study slots', done: true },
       { id: 'q1-4', text: 'Consistently deposit Hajj and Future savings', done: true },
     ],
   },
@@ -1030,9 +1120,9 @@ export const INITIAL_LIFE_GOALS: LifeGoalItem[] = [
     domain: 'Worship & Routine',
     progress: 80,
     milestones: [
-      { id: 'gs1-1', label: 'Wake up 04:15–04:30 for Tahajjud & Fajr before morning halaqah', completed: true },
-      { id: 'gs1-2', label: 'Arrive punctually for halaqah sessions (05:15–06:30 & 18:00–21:00)', completed: true },
-      { id: 'gs1-3', label: 'Consistent 1 Juz daily tilawah and morning movement', completed: true },
+      { id: 'gs1-1', label: 'Wake up 04:15–04:30 for Tahajjud & Fajr (or 04:40 during Haidh)', completed: true },
+      { id: 'gs1-2', label: 'Arrive punctually for halaqah (05:15 & 18:00) & private teaching (08:00–10:30 Mon–Thu)', completed: true },
+      { id: 'gs1-3', label: 'Consistent 1 Juz daily tilawah and midday rest (11:00–12:00)', completed: true },
       { id: 'gs1-4', label: 'Healthy sleep by 22:00–22:30 after evening reflection', completed: false },
     ],
   },
@@ -1059,7 +1149,7 @@ export const INITIAL_LIFE_GOALS: LifeGoalItem[] = [
     domain: 'Master’s Prep',
     progress: 50,
     milestones: [
-      { id: 'gs3-1', label: 'Study English 3x a week consistently', completed: true },
+      { id: 'gs3-1', label: 'Study English 3x weekly in afternoon slot (14:15–15:30)', completed: true },
       { id: 'gs3-2', label: 'Shortlist 3 target universities & scholarship prerequisites', completed: true },
       { id: 'gs3-3', label: 'Complete 10 IELTS Task 2 academic essay practices', completed: false },
     ],
@@ -1105,6 +1195,51 @@ export const INITIAL_LIFE_GOALS: LifeGoalItem[] = [
       { id: 'gl1-2', label: 'Reach initial Hajj quota registration savings target', completed: false },
       { id: 'gl1-3', label: 'Graduate Master’s with distinction & benefit the ummah with knowledge', completed: false },
       { id: 'gl1-4', label: 'Build a loving, sakinah family and continually honor parents', completed: false },
+    ],
+  },
+  {
+    id: 'goal-10yr-rumah',
+    horizon: 'sepuluh_tahun',
+    horizonLabel: 'Vision 10+ Years',
+    timeframe: '10+ Years',
+    title: 'Memiliki Rumah Sendiri yang Berkah, Nyaman & Bebas Riba (Own Family Residence)',
+    domain: 'Home & Property (Baitii Jannatii)',
+    progress: 15,
+    milestones: [
+      { id: 'g10-h1', label: 'Menyisihkan tabungan DP & dana darurat properti syariah secara konsisten tiap bulan', completed: true },
+      { id: 'g10-h2', label: 'Riset & menentukan lokasi hunian strategis dekat masjid dan lingkungan thalabul ilmi', completed: false },
+      { id: 'g10-h3', label: 'Mewujudkan rumah tinggal pribadi bebas riba dengan mushalla/ruang tahfizh Al-Qur’an keluarga', completed: false },
+      { id: 'g10-h4', label: 'Menjadikan rumah sebagai pusat kebaikan, majelis ilmu keluarga & silaturahim sanak kerabat', completed: false },
+    ],
+  },
+  {
+    id: 'goal-10yr-karier',
+    horizon: 'sepuluh_tahun',
+    horizonLabel: 'Vision 10+ Years',
+    timeframe: '10+ Years',
+    title: 'Pekerjaan Mapan, Tetap & Barakah (Dosen / Akademisi / Praktisi Pendidikan Al-Qur’an)',
+    domain: 'Career & Steady Livelihood',
+    progress: 25,
+    milestones: [
+      { id: 'g10-k1', label: 'Menyelesaikan studi Magister (S2) dengan predikat mumtaz & karya ilmiah bermanfaat', completed: false },
+      { id: 'g10-k2', label: 'Meraih posisi dosen / pengajar tetap di institusi pendidikan Islam / universitas terkemuka', completed: false },
+      { id: 'g10-k3', label: 'Membangun ekosistem penghasilan halal mandiri, stabil, dan berkesinambungan', completed: false },
+      { id: 'g10-k4', label: 'Menjadi konsultan kurikulum tahfizh Al-Qur’an anak & rujukan pendidikan akhlak muslimah', completed: false },
+    ],
+  },
+  {
+    id: 'goal-10yr-keluarga',
+    horizon: 'sepuluh_tahun',
+    horizonLabel: 'Vision 10+ Years',
+    timeframe: '10+ Years',
+    title: 'Membina Keluarga Bahagia, Sakinah Mawaddah Warahmah & Mendidik Generasi Ahlul Quran',
+    domain: 'Family & Sakinah Household',
+    progress: 20,
+    milestones: [
+      { id: 'g10-f1', label: 'Membangun rumah tangga sakinah yang saling menyayangi, mendukung dakwah dan thalabul ilmi', completed: false },
+      { id: 'g10-f2', label: 'Membimbing dan mengantarkan anak-anak menjadi hafizh/hafizhah 30 juz mutqin berakhlak karimah', completed: false },
+      { id: 'g10-f3', label: 'Senantiasa berbakti (birrul walidain) dan mendampingi kedua orang tua tercinta di masa tua', completed: true },
+      { id: 'g10-f4', label: 'Melaksanakan ibadah Haji dan Umrah bersama pasangan, anak-anak, dan orang tua tersayang', completed: false },
     ],
   },
   {
@@ -1212,8 +1347,8 @@ export const INITIAL_BUDGET_ALLOCATIONS: BudgetAllocationItem[] = [
     id: 'pos-masadepan',
     name: 'Future Savings (Master’s & Life)',
     categoryType: 'tabungan',
-    amount: 400000,
-    percentage: 20,
+    amount: 350000,
+    percentage: 17.5,
     rangeHint: 'Range 300k – 500k (Flexible)',
     minRange: 300000,
     maxRange: 500000,
@@ -1236,36 +1371,64 @@ export const INITIAL_BUDGET_ALLOCATIONS: BudgetAllocationItem[] = [
     id: 'pos-ortu',
     name: 'Gift & Support for Parents',
     categoryType: 'bakti',
+    amount: 250000,
+    percentage: 12.5,
+    rangeHint: '250k / month',
+    description: 'Monthly token of love and honor for parents (living at home = food & housing are safe, Alhamdulillah!).',
+    isTransferredThisMonth: true,
+  },
+  {
+    id: 'pos-keluarga',
+    name: 'Family Support & Needs',
+    categoryType: 'bakti',
+    amount: 200000,
+    percentage: 10,
+    rangeHint: '200k / month',
+    description: 'Monthly support for family needs, home supplies, siblings, and family warmth.',
+    isTransferredThisMonth: true,
+  },
+  {
+    id: 'pos-makan',
+    name: 'Daily Food & Meals',
+    categoryType: 'operasional',
     amount: 300000,
     percentage: 15,
-    rangeHint: '300k / month',
-    description: 'Monthly token of love and honor for parents (living at home = food & housing are safe, Alhamdulillah!).',
+    description: 'Wholesome daily meals, nutritious food, fruits, and snacks throughout the month.',
     isTransferredThisMonth: true,
   },
   {
     id: 'pos-bensin',
     name: 'Fuel & Transportation',
     categoryType: 'operasional',
-    amount: 250000,
-    percentage: 12.5,
+    amount: 200000,
+    percentage: 10,
     description: 'Fuel & motorcycle maintenance for teaching halaqah sessions and daily mobility.',
     isTransferredThisMonth: true,
   },
   {
-    id: 'pos-infaq-kuota',
-    name: 'Daily Infaq & Study Internet',
+    id: 'pos-infaq',
+    name: 'Daily Infaq & Morning Charity',
     categoryType: 'operasional',
-    amount: 150000,
-    percentage: 7.5,
-    description: 'Morning charity + internet data for lectures, podcasts & IELTS resources.',
+    amount: 100000,
+    percentage: 5,
+    description: 'Daily morning charity, Friday sadaqah, and consistent voluntary giving.',
+    isTransferredThisMonth: true,
+  },
+  {
+    id: 'pos-internet',
+    name: 'Internet & Study Mobile Data',
+    categoryType: 'operasional',
+    amount: 100000,
+    percentage: 5,
+    description: 'High-speed internet quota for Islamic lectures, podcasts, academic research & IELTS prep.',
     isTransferredThisMonth: true,
   },
   {
     id: 'pos-nongkrong',
     name: 'Friends & Weekend Hangouts',
     categoryType: 'operasional',
-    amount: 250000,
-    percentage: 12.5,
+    amount: 125000,
+    percentage: 6.25,
     description: 'Relaxed coffee or outings during flexible weekends (Saturday afternoon / Sunday morning).',
     isTransferredThisMonth: false,
   },
@@ -1273,18 +1436,28 @@ export const INITIAL_BUDGET_ALLOCATIONS: BudgetAllocationItem[] = [
     id: 'pos-belanja',
     name: 'Personal Needs, Books & Shopping',
     categoryType: 'operasional',
-    amount: 250000,
-    percentage: 12.5,
+    amount: 125000,
+    percentage: 6.25,
     description: 'Skincare, books, personal supplies, or unexpected needs.',
     isTransferredThisMonth: false,
   },
 ];
 
+export type ExpenseCategory =
+  | 'Fuel & Transport'
+  | 'Food & Meals'
+  | 'Infaq & Charity'
+  | 'Internet & Data'
+  | 'Family Support'
+  | 'Friends & Hangout'
+  | 'Personal & Shopping'
+  | 'Unexpected';
+
 export interface ExpenseRecord {
   id: string;
   date: string;
   title: string;
-  category: 'Fuel & Transport' | 'Infaq & Internet' | 'Friends & Hangout' | 'Personal & Shopping' | 'Unexpected';
+  category: ExpenseCategory;
   amount: number;
 }
 
@@ -1300,29 +1473,43 @@ export const INITIAL_EXPENSES: ExpenseRecord[] = [
     id: 'exp-2',
     date: 'Week 1',
     title: 'Monthly Internet Package for Podcasts & IELTS',
-    category: 'Infaq & Internet',
+    category: 'Internet & Data',
     amount: 75000,
   },
   {
     id: 'exp-3',
-    date: 'Saturday',
-    title: 'Coffee & Snacks with Best Friends on Flexible Saturday',
-    category: 'Friends & Hangout',
-    amount: 55000,
+    date: 'Week 1',
+    title: 'Morning Infaq & Friday Sadaqah',
+    category: 'Infaq & Charity',
+    amount: 25000,
   },
   {
     id: 'exp-4',
     date: 'Week 2',
-    title: 'English Grammar Practice Book & Notes',
-    category: 'Personal & Shopping',
-    amount: 85000,
+    title: 'Wholesome Lunch & Nutritious Groceries',
+    category: 'Food & Meals',
+    amount: 45000,
   },
   {
     id: 'exp-5',
     date: 'Week 2',
-    title: 'Fuel Top-up & Parking',
-    category: 'Fuel & Transport',
-    amount: 55000,
+    title: 'Fresh Fruit Basket for Family Home',
+    category: 'Family Support',
+    amount: 50000,
+  },
+  {
+    id: 'exp-6',
+    date: 'Saturday',
+    title: 'Coffee & Snacks with Best Friends on Flexible Saturday',
+    category: 'Friends & Hangout',
+    amount: 45000,
+  },
+  {
+    id: 'exp-7',
+    date: 'Week 2',
+    title: 'English Grammar Practice Book & Notes',
+    category: 'Personal & Shopping',
+    amount: 85000,
   },
 ];
 

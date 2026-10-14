@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Edit2, RotateCcw, Check, Clock } from 'lucide-react';
-import { DAYS_OF_WEEK, DayKey, ScheduleSlot } from '../data/plannerData';
+import { DAYS_OF_WEEK, DayKey, ScheduleSlot, formatTimeRangeToAmPm } from '../data/plannerData';
+import { TimeRangeAmPmPicker } from './TimeRangeAmPmPicker';
 
 interface EditScheduleModalProps {
   isOpen: boolean;
@@ -35,7 +36,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
 
   // Form for adding new slot
   const [isAddingNew, setIsAddingNew] = useState(false);
-  const [newTime, setNewTime] = useState('11:00 – 12:00');
+  const [newTime, setNewTime] = useState('08:00 AM – 10:30 AM');
   const [newTitle, setNewTitle] = useState('');
   const [newSubtitle, setNewSubtitle] = useState('');
   const [newCategory, setNewCategory] = useState<ScheduleSlot['category']>('istirahat');
@@ -53,7 +54,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
 
   const startEditing = (slot: ScheduleSlot) => {
     setEditingId(slot.id);
-    setEditTime(slot.timeRange);
+    setEditTime(formatTimeRangeToAmPm(slot.timeRange));
     setEditTitle(slot.title);
     setEditSubtitle(slot.subtitle);
     setEditCategory(slot.category);
@@ -188,18 +189,14 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                 </button>
               </div>
 
+              {/* Time Range Selector & Category */}
+              <TimeRangeAmPmPicker
+                value={newTime}
+                onChange={(val) => setNewTime(val)}
+                label="Activity Time Range (AM / PM)"
+              />
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-[#5A6B57] mb-1">Time Range</label>
-                  <input
-                    type="text"
-                    value={newTime}
-                    onChange={(e) => setNewTime(e.target.value)}
-                    placeholder="e.g. 11:00 – 12:00"
-                    required
-                    className="w-full bg-[#F7F4ED] border border-[#C7D3C0] rounded-xl px-3 min-h-[38px] text-xs font-mono"
-                  />
-                </div>
                 <div>
                   <label className="block text-xs font-medium text-[#5A6B57] mb-1">Category</label>
                   <select
@@ -216,27 +213,28 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                     <option value="fleksibel">Flexible / Family</option>
                   </select>
                 </div>
+                <div>
+                  <label className="block text-xs font-medium text-[#5A6B57] mb-1">Title</label>
+                  <input
+                    type="text"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="e.g. Midday Nap before Dhuhr"
+                    required
+                    className="w-full bg-[#F7F4ED] border border-[#C7D3C0] rounded-xl px-3 min-h-[38px] text-xs"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#5A6B57] mb-1">Title</label>
-                <input
-                  type="text"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="e.g. Midday Nap before Dhuhr"
-                  required
-                  className="w-full bg-[#F7F4ED] border border-[#C7D3C0] rounded-xl px-3 min-h-[38px] text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-[#5A6B57] mb-1">Description / Notes</label>
+                <label className="block text-xs font-medium text-[#5A6B57] mb-1">
+                  Description / Notes (Optional)
+                </label>
                 <input
                   type="text"
                   value={newSubtitle}
                   onChange={(e) => setNewSubtitle(e.target.value)}
-                  placeholder="e.g. Sunnah Qailulah for 30–60 minutes"
+                  placeholder="Optional brief note"
                   className="w-full bg-[#F7F4ED] border border-[#C7D3C0] rounded-xl px-3 min-h-[38px] text-xs"
                 />
               </div>
@@ -263,18 +261,13 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
               >
                 {isEditing ? (
                   <form onSubmit={handleSaveEdit} className="space-y-3">
+                    <TimeRangeAmPmPicker
+                      value={editTime}
+                      onChange={(val) => setEditTime(val)}
+                      label="Activity Time Range (AM / PM)"
+                    />
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[11px] font-medium text-[#5A6B57] mb-1">
-                          Time Range
-                        </label>
-                        <input
-                          type="text"
-                          value={editTime}
-                          onChange={(e) => setEditTime(e.target.value)}
-                          className="w-full bg-[#F7F4ED] border border-[#C7D3C0] rounded-lg px-2.5 py-1.5 text-xs font-mono font-semibold"
-                        />
-                      </div>
                       <div>
                         <label className="block text-[11px] font-medium text-[#5A6B57] mb-1">
                           Category
@@ -293,28 +286,29 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                           <option value="fleksibel">Flexible</option>
                         </select>
                       </div>
+
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#5A6B57] mb-1">
+                          Title
+                        </label>
+                        <input
+                          type="text"
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          className="w-full bg-[#F7F4ED] border border-[#C7D3C0] rounded-lg px-2.5 py-1.5 text-xs"
+                        />
+                      </div>
                     </div>
 
                     <div>
                       <label className="block text-[11px] font-medium text-[#5A6B57] mb-1">
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        value={editTitle}
-                        onChange={(e) => setEditTitle(e.target.value)}
-                        className="w-full bg-[#F7F4ED] border border-[#C7D3C0] rounded-lg px-2.5 py-1.5 text-xs"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-medium text-[#5A6B57] mb-1">
-                        Subtitle / Details
+                        Subtitle / Notes (Optional)
                       </label>
                       <input
                         type="text"
                         value={editSubtitle}
                         onChange={(e) => setEditSubtitle(e.target.value)}
+                        placeholder="Optional brief note"
                         className="w-full bg-[#F7F4ED] border border-[#C7D3C0] rounded-lg px-2.5 py-1.5 text-xs"
                       />
                     </div>
@@ -340,7 +334,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-xs font-bold text-[#3A4B37] tabular-nums">
-                          {slot.timeRange}
+                          {formatTimeRangeToAmPm(slot.timeRange)}
                         </span>
                         <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#F7F4ED] border border-[#C7D3C0] text-[#5A6B57]">
                           {slot.category}

@@ -51,6 +51,38 @@ interface FinanceFlowViewProps {
   onDeleteExpense: (id: string) => void;
 }
 
+export const getTodayDateISO = (): string => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+export const formatDisplayDate = (dateStr: string): string => {
+  if (!dateStr) return '';
+  const todayISO = getTodayDateISO();
+  if (dateStr === todayISO || dateStr.toLowerCase() === 'today') {
+    const formatted = new Date().toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+    return `Today (${formatted})`;
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const parsed = new Date(dateStr + 'T00:00:00');
+    if (!isNaN(parsed.getTime())) {
+      return parsed.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    }
+  }
+  return dateStr;
+};
+
 export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
   incomes,
   onAddIncome,
@@ -81,14 +113,14 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
   const [incSourceType, setIncSourceType] = useState<IncomeSourceType>('Salary');
   const [incCustomDesc, setIncCustomDesc] = useState('');
   const [incAmount, setIncAmount] = useState('2000000');
-  const [incDate, setIncDate] = useState('This Month');
+  const [incDate, setIncDate] = useState(getTodayDateISO());
 
   // Expense form state
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [expTitle, setExpTitle] = useState('');
   const [expCategory, setExpCategory] = useState<ExpenseRecord['category']>('Fuel & Transport');
   const [expAmount, setExpAmount] = useState('');
-  const [expDate, setExpDate] = useState('Today');
+  const [expDate, setExpDate] = useState(getTodayDateISO());
 
   // Edit income modal/inline
   const [editingIncomeId, setEditingIncomeId] = useState<string | null>(null);
@@ -96,12 +128,14 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
   const [editIncSourceType, setEditIncSourceType] = useState<IncomeSourceType>('Salary');
   const [editIncCustomDesc, setEditIncCustomDesc] = useState('');
   const [editIncAmount, setEditIncAmount] = useState('');
+  const [editIncDate, setEditIncDate] = useState(getTodayDateISO());
 
   // Edit expense inline
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [editExpTitle, setEditExpTitle] = useState('');
   const [editExpCategory, setEditExpCategory] = useState<ExpenseRecord['category']>('Fuel & Transport');
   const [editExpAmount, setEditExpAmount] = useState('');
+  const [editExpDate, setEditExpDate] = useState(getTodayDateISO());
 
   // Allocation filter & editing state
   const [allocationCategoryFilter, setAllocationCategoryFilter] = useState<'all' | 'tabungan' | 'bakti' | 'operasional'>('all');
@@ -135,14 +169,14 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
       incTitle.trim(),
       incSourceType,
       num,
-      incDate.trim() || 'This Month',
+      incDate.trim() || getTodayDateISO(),
       incSourceType === 'Other' ? incCustomDesc.trim() : undefined
     );
     setIncTitle('Monthly Salary');
     setIncSourceType('Salary');
     setIncCustomDesc('');
     setIncAmount('2000000');
-    setIncDate('This Month');
+    setIncDate(getTodayDateISO());
     setShowIncomeForm(false);
   };
 
@@ -152,6 +186,7 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
     setEditIncSourceType(item.sourceType);
     setEditIncCustomDesc(item.customDescription || '');
     setEditIncAmount(item.amount.toString());
+    setEditIncDate(item.date && item.date.match(/^\d{4}-\d{2}-\d{2}$/) ? item.date : getTodayDateISO());
   };
 
   const handleSaveEditIncome = (id: string) => {
@@ -159,7 +194,7 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
     if (!editIncTitle.trim() || !num || num <= 0) return;
     onUpdateIncome({
       id,
-      date: 'Updated',
+      date: editIncDate.trim() || getTodayDateISO(),
       title: editIncTitle.trim(),
       sourceType: editIncSourceType,
       amount: num,
@@ -173,10 +208,10 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
     e.preventDefault();
     const num = Number(expAmount.replace(/[^0-9]/g, ''));
     if (!expTitle.trim() || !num || num <= 0) return;
-    onAddExpense(expTitle.trim(), expCategory, num, expDate.trim() || 'Today');
+    onAddExpense(expTitle.trim(), expCategory, num, expDate.trim() || getTodayDateISO());
     setExpTitle('');
     setExpAmount('');
-    setExpDate('Today');
+    setExpDate(getTodayDateISO());
     setShowExpenseForm(false);
   };
 
@@ -185,6 +220,7 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
     setEditExpTitle(item.title);
     setEditExpCategory(item.category);
     setEditExpAmount(item.amount.toString());
+    setEditExpDate(item.date && item.date.match(/^\d{4}-\d{2}-\d{2}$/) ? item.date : getTodayDateISO());
   };
 
   const handleSaveEditExpense = (id: string) => {
@@ -192,7 +228,7 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
     if (!editExpTitle.trim() || !num || num <= 0) return;
     onUpdateExpense({
       id,
-      date: 'Updated',
+      date: editExpDate.trim() || getTodayDateISO(),
       title: editExpTitle.trim(),
       category: editExpCategory,
       amount: num,
@@ -423,17 +459,28 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                 />
               </div>
 
-              {/* Date */}
+              {/* Date Input with Real-time option */}
               <div>
-                <label className="block text-xs font-medium text-[#5A6B57] mb-1">
-                  Date / Period
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-medium text-[#5A6B57]">
+                    Transaction Date (Tanggal)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setIncDate(getTodayDateISO())}
+                    className="text-[10px] font-semibold text-[#3A4B37] hover:underline flex items-center gap-1"
+                    title="Set to today's real-time date"
+                  >
+                    <Calendar className="w-3 h-3 text-[#8FA28A]" />
+                    <span>Today (Realtime)</span>
+                  </button>
+                </div>
                 <input
-                  type="text"
+                  type="date"
                   value={incDate}
                   onChange={(e) => setIncDate(e.target.value)}
-                  placeholder="e.g., Start of Month"
-                  className="w-full bg-white border border-[#C7D3C0] rounded-xl px-3 min-h-[40px] text-xs text-[#243023] focus:outline-none focus:border-[#8FA28A]"
+                  required
+                  className="w-full bg-white border border-[#C7D3C0] rounded-xl px-3 min-h-[40px] text-xs font-mono text-[#243023] focus:outline-none focus:border-[#8FA28A]"
                 />
               </div>
             </div>
@@ -492,8 +539,11 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                   }
                   className="w-full bg-white border border-[#C7D3C0] rounded-xl px-3 min-h-[40px] text-xs text-[#243023] focus:outline-none focus:border-[#8FA28A]"
                 >
+                  <option value="Food & Meals">Daily Food &amp; Meals</option>
+                  <option value="Infaq & Charity">Daily Infaq &amp; Charity</option>
+                  <option value="Internet & Data">Internet &amp; Mobile Data</option>
+                  <option value="Family Support">Family Support (Buat Keluarga)</option>
                   <option value="Fuel & Transport">Fuel &amp; Transportation</option>
-                  <option value="Infaq & Internet">Infaq &amp; Internet</option>
                   <option value="Friends & Hangout">Friends &amp; Hangouts</option>
                   <option value="Personal & Shopping">Personal &amp; Shopping</option>
                   <option value="Unexpected">Unexpected / Miscellaneous</option>
@@ -528,16 +578,28 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                 />
               </div>
 
+              {/* Date Input with Real-time option */}
               <div>
-                <label className="block text-xs font-medium text-[#5A6B57] mb-1">
-                  Date / Period
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-medium text-[#5A6B57]">
+                    Expense Date (Tanggal)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setExpDate(getTodayDateISO())}
+                    className="text-[10px] font-semibold text-[#3A4B37] hover:underline flex items-center gap-1"
+                    title="Set to today's real-time date"
+                  >
+                    <Calendar className="w-3 h-3 text-[#8FA28A]" />
+                    <span>Today (Realtime)</span>
+                  </button>
+                </div>
                 <input
-                  type="text"
+                  type="date"
                   value={expDate}
                   onChange={(e) => setExpDate(e.target.value)}
-                  placeholder="e.g., Today / Week 1"
-                  className="w-full bg-white border border-[#C7D3C0] rounded-xl px-3 min-h-[40px] text-xs text-[#243023] focus:outline-none focus:border-[#8FA28A]"
+                  required
+                  className="w-full bg-white border border-[#C7D3C0] rounded-xl px-3 min-h-[40px] text-xs font-mono text-[#243023] focus:outline-none focus:border-[#8FA28A]"
                 />
               </div>
             </div>
@@ -883,16 +945,6 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
               <h3 className="text-base font-bold text-[#243023]">Income Records (Salary &amp; Extra)</h3>
               <span className="font-arabic text-sm text-[#3A4B37]">سجل الدخل</span>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setShowIncomeForm(true);
-                setShowExpenseForm(false);
-              }}
-              className="text-xs font-semibold text-[#3A4B37] hover:underline"
-            >
-              + Add
-            </button>
           </div>
 
           <div className="space-y-2">
@@ -923,13 +975,31 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                           className="bg-white border border-[#C7D3C0] rounded-lg p-1.5 text-xs font-mono font-semibold"
                         />
                       </div>
-                      <input
-                        type="text"
-                        value={editIncTitle}
-                        onChange={(e) => setEditIncTitle(e.target.value)}
-                        placeholder="Title / Source"
-                        className="w-full bg-white border border-[#C7D3C0] rounded-lg p-1.5 text-xs"
-                      />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input
+                          type="text"
+                          value={editIncTitle}
+                          onChange={(e) => setEditIncTitle(e.target.value)}
+                          placeholder="Title / Source"
+                          className="w-full bg-white border border-[#C7D3C0] rounded-lg p-1.5 text-xs"
+                        />
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="date"
+                            value={editIncDate}
+                            onChange={(e) => setEditIncDate(e.target.value)}
+                            className="flex-1 bg-white border border-[#C7D3C0] rounded-lg p-1.5 text-xs font-mono"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setEditIncDate(getTodayDateISO())}
+                            className="px-2 py-1.5 rounded-lg bg-[#EAEFE8] text-[10px] font-semibold text-[#243023] hover:bg-[#DCE5D8]"
+                            title="Set today"
+                          >
+                            Today
+                          </button>
+                        </div>
+                      </div>
                       {editIncSourceType === 'Other' && (
                         <input
                           type="text"
@@ -965,8 +1035,14 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                             {item.sourceType === 'Salary' ? 'Salary' : 'Other'}
                           </span>
                         </div>
-                        <div className="text-[11px] text-[#5A6B57] mt-0.5">
-                          {item.customDescription || item.date}
+                        <div className="text-[11px] text-[#5A6B57] mt-0.5 flex flex-wrap items-center gap-1.5">
+                          <span className="font-mono text-[#3A4B37] font-medium">{formatDisplayDate(item.date)}</span>
+                          {item.customDescription && (
+                            <>
+                              <span aria-hidden="true">·</span>
+                              <span>{item.customDescription}</span>
+                            </>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
@@ -1008,16 +1084,6 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
               <h3 className="text-base font-bold text-[#243023]">Actual Expense Records</h3>
               <span className="font-arabic text-sm text-[#3A4B37]">سجل المصروفات</span>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setShowExpenseForm(true);
-                setShowIncomeForm(false);
-              }}
-              className="text-xs font-semibold text-[#3A4B37] hover:underline"
-            >
-              + Record
-            </button>
           </div>
 
           <div className="space-y-2">
@@ -1038,8 +1104,11 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                           }
                           className="bg-white border border-[#C7D3C0] rounded-lg p-1.5 text-xs text-[#243023]"
                         >
+                          <option value="Food & Meals">Daily Food &amp; Meals</option>
+                          <option value="Infaq & Charity">Daily Infaq &amp; Charity</option>
+                          <option value="Internet & Data">Internet &amp; Mobile Data</option>
+                          <option value="Family Support">Family Support (Buat Keluarga)</option>
                           <option value="Fuel & Transport">Fuel &amp; Transportation</option>
-                          <option value="Infaq & Internet">Infaq &amp; Internet</option>
                           <option value="Friends & Hangout">Friends &amp; Hangouts</option>
                           <option value="Personal & Shopping">Personal &amp; Shopping</option>
                           <option value="Unexpected">Unexpected / Misc</option>
@@ -1051,13 +1120,31 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                           className="bg-white border border-[#C7D3C0] rounded-lg p-1.5 text-xs font-mono font-semibold"
                         />
                       </div>
-                      <input
-                        type="text"
-                        value={editExpTitle}
-                        onChange={(e) => setEditExpTitle(e.target.value)}
-                        placeholder="Expense title"
-                        className="w-full bg-white border border-[#C7D3C0] rounded-lg p-1.5 text-xs"
-                      />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input
+                          type="text"
+                          value={editExpTitle}
+                          onChange={(e) => setEditExpTitle(e.target.value)}
+                          placeholder="Expense title"
+                          className="w-full bg-white border border-[#C7D3C0] rounded-lg p-1.5 text-xs"
+                        />
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="date"
+                            value={editExpDate}
+                            onChange={(e) => setEditExpDate(e.target.value)}
+                            className="flex-1 bg-white border border-[#C7D3C0] rounded-lg p-1.5 text-xs font-mono"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setEditExpDate(getTodayDateISO())}
+                            className="px-2 py-1.5 rounded-lg bg-[#EAEFE8] text-[10px] font-semibold text-[#243023] hover:bg-[#DCE5D8]"
+                            title="Set today"
+                          >
+                            Today
+                          </button>
+                        </div>
+                      </div>
                       <div className="flex justify-end gap-2 pt-1">
                         <button
                           type="button"
@@ -1084,7 +1171,9 @@ export const FinanceFlowView: React.FC<FinanceFlowViewProps> = ({
                             {item.category}
                           </span>
                         </div>
-                        <div className="text-[11px] text-[#5A6B57] mt-0.5">{item.date}</div>
+                        <div className="text-[11px] text-[#5A6B57] mt-0.5 flex flex-wrap items-center gap-1.5">
+                          <span className="font-mono text-[#3A4B37] font-medium">{formatDisplayDate(item.date)}</span>
+                        </div>
                       </div>
                       <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
                         <span className="text-sm font-bold font-mono text-[#6E7D6B]">

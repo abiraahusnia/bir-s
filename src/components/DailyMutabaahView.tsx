@@ -21,6 +21,8 @@ import {
   ALL_196_MUROJAAH_DAYS,
   DailyTilawahRecord,
   JUZ_PAGE_MAP,
+  parseSlotTimeRange,
+  formatTimeRangeToAmPm,
 } from '../data/plannerData';
 import { MushafPageGuideModal } from './MushafPageGuideModal';
 
@@ -245,14 +247,68 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
     (completedMutabaahCount / activeMutabaahItems.length) * 100
   );
 
-  const completedScheduleCount = scheduleSlots.filter((s) => completedSlots[s.id]).length;
+  const currentMinutes = realtimeNow.getHours() * 60 + realtimeNow.getMinutes();
+  const isSelectedDayToday = selectedDay === todayKey;
 
-  const filteredSlots = scheduleSlots.filter((slot) => {
+  const getSlotStatus = (slot: ScheduleSlot): 'passed' | 'current' | 'upcoming' => {
+    const parsed = parseSlotTimeRange(slot.timeRange);
+    if (!parsed) return 'upcoming';
+
+    if (!isSelectedDayToday) {
+      const dayOrder: DayKey[] = ['minggu', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
+      const currentIdx = dayOrder.indexOf(todayKey);
+      const selectedIdx = dayOrder.indexOf(selectedDay);
+      if (selectedIdx < currentIdx) return 'passed';
+      if (selectedIdx > currentIdx) return 'upcoming';
+    }
+
+    if (currentMinutes > parsed.endMins) {
+      return 'passed';
+    } else if (currentMinutes >= parsed.startMins && currentMinutes <= parsed.endMins) {
+      return 'current';
+    } else {
+      return 'upcoming';
+    }
+  };
+
+  // Adapt slots dynamically when in Haidh mode (Wake up at 04:40, Fajr prayer excused)
+  const effectiveSlots = scheduleSlots
+    .filter((slot) => {
+      if (isHaidhMode && (slot.id.endsWith('-2') || slot.title.toLowerCase().includes('fajr'))) {
+        return false;
+      }
+      return true;
+    })
+    .map((slot) => {
+      if (isHaidhMode && (slot.id.endsWith('-1') || slot.title.toLowerCase().includes('wake up'))) {
+        return {
+          ...slot,
+          timeRange: '04:40 – 04:55',
+          title: 'Wake Up & Dzikr',
+          subtitle: 'Wake up at 04:40 during Haidh · Morning dzikr, istighfar & halaqah prep',
+        };
+      }
+      return slot;
+    });
+
+  const filteredSlots = effectiveSlots.filter((slot) => {
     if (scheduleFilter === 'all') return true;
     if (scheduleFilter === 'halaqah') return slot.category === 'halaqah';
     if (scheduleFilter === 'ibadah') return slot.category === 'ibadah';
     return slot.category === 'belajar' || slot.category === 'fleksibel' || slot.category === 'istirahat';
   });
+
+  const sortedSlots = [...filteredSlots].sort((a, b) => {
+    const pA = parseSlotTimeRange(a.timeRange);
+    const pB = parseSlotTimeRange(b.timeRange);
+    const startA = pA ? pA.startMins : 9999;
+    const startB = pB ? pB.startMins : 9999;
+    return startA - startB;
+  });
+
+  const passedSlotsCount = sortedSlots.filter((s) => getSlotStatus(s) === 'passed').length;
+  const currentSlot = sortedSlots.find((s) => getSlotStatus(s) === 'current');
+  const upcomingSlotsCount = sortedSlots.filter((s) => getSlotStatus(s) === 'upcoming').length;
 
   return (
     <div className="space-y-8">
@@ -574,13 +630,13 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
                 )}
               </div>
 
-              <div className="text-lg font-bold text-[#243023] truncate">
+              <div className="text-lg font-bold text-[#243023] break-words">
                 {todayMurojaahSpec.targetLabel}
               </div>
-              <div className="text-xs font-bold text-[#3A4B37]">
+              <div className="text-xs font-bold text-[#3A4B37] break-words">
                 Target: {todayMurojaahSpec.pageRangeText} ({todayMurojaahSpec.sheetsEstimateText})
               </div>
-              <div className="text-[11px] text-[#5A6B57]">
+              <div className="text-[11px] text-[#5A6B57] break-words">
                 {todayMurojaahSpec.formulaNote}
               </div>
             </div>
@@ -679,78 +735,173 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
         </div>
       </section>
 
-      {/* 3. DAILY SCHEDULE TIMELINE (INCLUDES 11:00-12:00 MIDDAY NAP) */}
+      {/* 3. DAILY SCHEDULE TIMELINE: REALTIME 3-COLOR LIST (NO CHECKBOXES, EXCLUSIVE TO MUTABAAH) */}
       <section className="bg-white/95 border border-[#C7D3C0] rounded-2xl p-5 sm:p-7 space-y-5 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#C7D3C0]/60">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Clock className="w-4 h-4 text-[#8FA28A]" />
               <h3 className="text-lg font-bold text-[#243023]">
                 Daily Schedule Timeline ({currentDayInfo.label})
               </h3>
+              {isSelectedDayToday ? (
+                <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#EAF5E6] text-[#285721] text-[11px] font-bold border border-[#B3D4A8]">
+                  <span className="w-2 h-2 rounded-full bg-[#3F7C35] animate-ping" />
+                  Live Realtime
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded-md bg-[#F7F4ED] text-[#5A6B57] text-[11px] font-semibold border border-[#C7D3C0]">
+                  Viewing {currentDayInfo.label}
+                </span>
+              )}
             </div>
-            <p className="text-xs text-[#5A6B57] mt-0.5">
-              Halaqah: 05:15–06:30 &amp; 18:00–21:00 · Midday nap 11:00–12:00.
+            <p className="text-xs text-[#5A6B57] mt-1">
+              Wake-up ({isHaidhMode ? '04:40 AM' : '04:15 AM'}) to bedtime (10:30 PM) chronological flow. Color updates dynamically in real-time as your day progresses.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="text-xs font-mono font-semibold text-[#3A4B37] bg-[#F7F4ED] px-3 py-1.5 rounded-xl border border-[#C7D3C0]">
-              {completedScheduleCount} / {scheduleSlots.length} Slots Done
-            </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {!isSelectedDayToday && todayKey && (
+              <button
+                type="button"
+                onClick={() => onSelectDay(todayKey)}
+                className="px-3 py-1.5 rounded-xl bg-[#EAEFE8] text-[#243023] text-xs font-semibold hover:bg-[#DCE5D8] transition-colors flex items-center gap-1.5 border border-[#C7D3C0]"
+              >
+                <Clock className="w-3.5 h-3.5 text-[#5A6B57]" />
+                <span>Jump to Today ({DAYS_OF_WEEK.find((d) => d.key === todayKey)?.short})</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => onOpenEditSchedule()}
-              className="p-2 rounded-xl bg-[#F7F4ED] border border-[#C7D3C0] text-[#5A6B57] hover:text-[#243023]"
-              title="Edit schedule slots"
+              className="px-3.5 py-1.5 rounded-xl bg-[#8FA28A] text-white text-xs font-semibold hover:bg-[#7A8E75] transition-colors flex items-center gap-1.5 shadow-2xs"
+              title="Edit schedule hours, activities, and routines"
             >
-              <Edit2 className="w-4 h-4" />
+              <Edit2 className="w-3.5 h-3.5" />
+              <span>Edit / Add Schedule</span>
             </button>
           </div>
         </div>
 
-        {/* Schedule List */}
+        {/* 3-COLOR REALTIME STATUS LEGEND */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-[#F7F4ED] border border-[#C7D3C0]/70 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold text-[#5A6B57] text-[11px] mr-1">3 Realtime States:</span>
+
+            {/* 1. In Progress (Sedang Dilakukan) */}
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#EAF5E6] border border-[#89C778] text-[#1D4A16] font-bold text-[11px]">
+              <span className="w-2 h-2 rounded-full bg-[#3F7C35] animate-pulse" />
+              Active Now {currentSlot ? `(${formatTimeRangeToAmPm(currentSlot.timeRange)})` : ''}
+            </span>
+
+            {/* 2. Upcoming (Belum) */}
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-[#C7D3C0] text-[#243023] font-medium text-[11px]">
+              <span className="w-2 h-2 rounded-full bg-[#8FA28A]" />
+              Upcoming ({upcomingSlotsCount})
+            </span>
+
+            {/* 3. Passed (Sudah Kelewat) */}
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#ECE8E1] border border-[#D5CEC2] text-[#696358] font-medium text-[11px]">
+              <span className="w-2 h-2 rounded-full bg-[#A8A194]" />
+              Passed ({passedSlotsCount})
+            </span>
+          </div>
+
+          <div className="font-mono text-xs text-[#5A6B57] flex items-center gap-1.5 shrink-0">
+            <Clock className="w-3.5 h-3.5 text-[#8FA28A]" />
+            <span>Realtime: {formattedTime}</span>
+          </div>
+        </div>
+
+        {/* Schedule List: Wake up to Sleep in Chronological Order */}
         <div className="space-y-3">
-          {filteredSlots.map((slot) => {
-            const isDone = Boolean(completedSlots[slot.id]);
+          {sortedSlots.map((slot) => {
+            const status = getSlotStatus(slot);
             const isNap = slot.id.includes('nap') || slot.title.toLowerCase().includes('nap');
             const isPrayerSlot = slot.category === 'ibadah';
+
+            // Distinct 3 colors:
+            // 1) Active Now (Sedang Dilakukan): Vibrant rich emerald green highlight
+            // 2) Passed (Sudah Kelewat): Muted warm neutral slate/gray
+            // 3) Upcoming (Belum): Clean fresh white card
+            const containerStyle =
+              status === 'current'
+                ? 'bg-[#EAF5E6] border-2 border-[#528747] shadow-sm ring-2 ring-[#77AC6C]/25 text-[#183115]'
+                : status === 'passed'
+                ? 'bg-[#F4F2EE]/80 border border-[#DDD8CF] text-[#706B62] opacity-80'
+                : 'bg-white border border-[#C7D3C0] hover:border-[#8FA28A] text-[#243023] shadow-2xs';
 
             return (
               <div
                 key={slot.id}
-                className={`p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                  isDone
-                    ? 'bg-[#F7F4ED]/60 border-[#C7D3C0] opacity-80'
-                    : isNap
-                    ? 'bg-[#F3EFE6] border-[#D8CEBA]'
-                    : slot.isFixedHalaqah
-                    ? 'bg-[#F0F5EE] border-[#B8CEB5]'
-                    : isHaidhMode && isPrayerSlot
-                    ? 'bg-[#F4EFEB]/80 border-[#D9C8BE]'
-                    : 'bg-white border-[#C7D3C0]'
-                }`}
+                className={`p-4 rounded-xl transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${containerStyle}`}
               >
-                <div className="flex items-start gap-3">
-                  <button
-                    type="button"
-                    onClick={() => onToggleSlot(slot.id)}
-                    className={`mt-0.5 w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                      isDone
-                        ? 'bg-[#8FA28A] text-white'
-                        : 'border-2 border-[#8FA28A] bg-white hover:bg-[#EAEFE8]'
-                    }`}
-                  >
-                    {isDone && <Check className="w-4 h-4" />}
-                  </button>
-
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-[#3A4B37] tabular-nums">
-                        {slot.timeRange}
+                <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                  {/* Status Indicator Icon Node (3 Colors) */}
+                  <div className="mt-0.5 shrink-0">
+                    {status === 'current' ? (
+                      <span
+                        className="w-9 h-9 rounded-xl bg-[#528747] text-white flex items-center justify-center shadow-xs"
+                        title="Active activity right now"
+                      >
+                        <Clock className="w-4 h-4" />
                       </span>
+                    ) : status === 'passed' ? (
+                      <span
+                        className="w-9 h-9 rounded-xl bg-[#E5DFD4] text-[#6E685E] flex items-center justify-center"
+                        title="Activity time has ended"
+                      >
+                        <Check className="w-4 h-4" />
+                      </span>
+                    ) : (
+                      <span
+                        className="w-9 h-9 rounded-xl bg-[#F7F4ED] border border-[#C7D3C0] text-[#5A6B57] flex items-center justify-center"
+                        title="Upcoming activity"
+                      >
+                        <Clock className="w-4 h-4" />
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* Time Range Badge */}
+                      <span
+                        className={`font-mono text-xs font-bold tabular-nums px-2.5 py-0.5 rounded-md ${
+                          status === 'current'
+                            ? 'bg-[#D3E8CC] text-[#183115] border border-[#B3D4A8]'
+                            : status === 'passed'
+                            ? 'bg-[#EAE5DB] text-[#706B62]'
+                            : 'bg-[#F7F4ED] text-[#3A4B37] border border-[#C7D3C0]'
+                        }`}
+                      >
+                        {formatTimeRangeToAmPm(slot.timeRange)}
+                      </span>
+
+                      {/* 3-Color Status Badge */}
+                      {status === 'current' ? (
+                        <span className="px-2.5 py-0.5 rounded-full bg-[#528747] text-white text-[10px] font-bold flex items-center gap-1.5 shadow-2xs tracking-wide uppercase">
+                          <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                          NOW · In Progress
+                        </span>
+                      ) : status === 'passed' ? (
+                        <span className="px-2 py-0.5 rounded-md bg-[#E5DFD4] text-[#696359] text-[10px] font-semibold flex items-center gap-1">
+                          <Check className="w-3 h-3 text-[#696359]" />
+                          Passed
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-md bg-[#F4EFEB] border border-[#DDD5C7] text-[#5A6B57] text-[10px] font-medium flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-[#5A6B57]" />
+                          Upcoming
+                        </span>
+                      )}
+
                       {slot.arabicTitle && (
-                        <span className="font-arabic text-xs text-[#5A6B57]">
+                        <span
+                          className={`font-arabic text-xs ${
+                            status === 'passed' ? 'text-[#8C867D]' : 'text-[#5A6B57]'
+                          }`}
+                        >
                           {slot.arabicTitle}
                         </span>
                       )}
@@ -766,38 +917,56 @@ export const DailyMutabaahView: React.FC<DailyMutabaahViewProps> = ({
                       )}
                       {isHaidhMode && isPrayerSlot && (
                         <span className="px-2 py-0.5 rounded-md bg-[#E4D7CF] text-[#63483C] text-[10px] font-semibold">
-                          Period Exemption · Time for Dzikr
+                          Haidh · Time for Dzikr
                         </span>
                       )}
                     </div>
+
                     <h4
-                      className={`text-sm font-bold mt-1 ${
-                        isDone ? 'line-through text-[#6E7D6B]' : 'text-[#243023]'
+                      className={`text-sm font-bold mt-1.5 ${
+                        status === 'current'
+                          ? 'text-[#183115]'
+                          : status === 'passed'
+                          ? 'text-[#5E5950]'
+                          : 'text-[#243023]'
                       }`}
                     >
                       {slot.title}
                     </h4>
-                    <p className="text-xs text-[#5A6B57] mt-0.5 leading-relaxed">
-                      {isHaidhMode && isPrayerSlot
-                        ? 'Period exemption: Utilize this peaceful time for istighfar, dzikr lisan, or listening to Quran recitation.'
-                        : slot.subtitle}
-                    </p>
+
+                    {Boolean(slot.subtitle || (isHaidhMode && isPrayerSlot)) && (
+                      <p
+                        className={`text-xs mt-0.5 leading-relaxed ${
+                          status === 'current'
+                            ? 'text-[#2C4F25]'
+                            : status === 'passed'
+                            ? 'text-[#7D776E]'
+                            : 'text-[#5A6B57]'
+                        }`}
+                      >
+                        {isHaidhMode && isPrayerSlot && !slot.title.toLowerCase().includes('dzikr')
+                          ? 'Haidh exemption: Utilize this peaceful time for istighfar, dzikr lisan, or listening to Quran recitation.'
+                          : slot.subtitle}
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 self-end sm:self-center shrink-0">
+                {/* Edit & Delete Action Buttons (bisa di edit jam dan kegiatannya) */}
+                <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
                   <button
                     type="button"
                     onClick={() => onOpenEditSchedule(slot.id)}
-                    className="p-1.5 rounded-lg text-[#6E7D6B] hover:text-[#243023] hover:bg-[#F7F4ED]"
-                    title="Edit this slot"
+                    className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#F7F4ED] border border-[#C7D3C0] text-[#5A6B57] hover:text-[#243023] hover:bg-[#EAE6DC] flex items-center gap-1 transition-colors"
+                    title="Edit time range & activity details"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
+                    <span>Edit</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => onDeleteCustomSlot(selectedDay, slot.id)}
-                    className="p-1.5 rounded-lg text-[#6E7D6B] hover:text-red-700 hover:bg-[#F7F4ED]"
+                    className="p-1.5 rounded-lg text-[#6E7D6B] hover:text-red-700 hover:bg-[#F7F4ED] transition-colors"
                     title="Delete slot"
                   >
                     <Trash2 className="w-3.5 h-3.5" />

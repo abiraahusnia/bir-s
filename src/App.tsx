@@ -5,7 +5,7 @@ import {
   Layers,
   Compass,
   Wallet,
-  Edit2,
+  X,
   Clock,
 } from 'lucide-react';
 import {
@@ -164,7 +164,21 @@ export default function App() {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw);
-      if (parsed.schedulesByDay) setSchedulesByDay(parsed.schedulesByDay);
+      if (parsed.schedulesVersion >= 5 && parsed.schedulesByDay) {
+        const sanitizedSchedules = { ...parsed.schedulesByDay };
+        (Object.keys(sanitizedSchedules) as DayKey[]).forEach((day) => {
+          if (Array.isArray(sanitizedSchedules[day])) {
+            sanitizedSchedules[day] = sanitizedSchedules[day].map((slot: ScheduleSlot) => ({
+              ...slot,
+              title: slot.title ? slot.title.replace(/adhkar/gi, 'Dzikr') : slot.title,
+              subtitle: slot.subtitle ? slot.subtitle.replace(/adhkar/gi, 'dzikr') : slot.subtitle,
+            }));
+          }
+        });
+        setSchedulesByDay(sanitizedSchedules);
+      } else {
+        setSchedulesByDay(getDefaultSchedules());
+      }
       if (parsed.completedSlots) setCompletedSlots(parsed.completedSlots);
       if (parsed.mutabaahState) setMutabaahState(parsed.mutabaahState);
       if (parsed.isHaidhModeByDay) setIsHaidhModeByDay(parsed.isHaidhModeByDay);
@@ -185,13 +199,38 @@ export default function App() {
         setActiveMurojaahDay(1);
       }
       if (parsed.completedMurojaahDays) setCompletedMurojaahDays(parsed.completedMurojaahDays);
-      if (parsed.weeklyTargets) setWeeklyTargets(parsed.weeklyTargets);
+      if (parsed.schedulesVersion >= 5 && parsed.weeklyTargets) {
+        setWeeklyTargets(parsed.weeklyTargets);
+      } else {
+        setWeeklyTargets(INITIAL_WEEKLY_TARGETS);
+      }
       if (parsed.monthlyPlans) setMonthlyPlans(parsed.monthlyPlans);
       if (parsed.annualRoadmap) setAnnualRoadmap(parsed.annualRoadmap);
-      if (parsed.lifeGoals) setLifeGoals(parsed.lifeGoals);
+      if (
+        parsed.lifeGoals &&
+        parsed.lifeGoals.some((g: LifeGoalItem) => g.id === 'goal-10yr-rumah')
+      ) {
+        setLifeGoals(parsed.lifeGoals);
+      } else {
+        setLifeGoals(INITIAL_LIFE_GOALS);
+      }
       if (parsed.incomes) setIncomes(parsed.incomes);
-      if (parsed.budgetAllocations) setBudgetAllocations(parsed.budgetAllocations);
-      if (parsed.expenses) setExpenses(parsed.expenses);
+      if (
+        parsed.budgetAllocations &&
+        parsed.budgetAllocations.some((b: BudgetAllocationItem) => b.id === 'pos-keluarga')
+      ) {
+        setBudgetAllocations(parsed.budgetAllocations);
+      } else {
+        setBudgetAllocations(INITIAL_BUDGET_ALLOCATIONS);
+      }
+      if (
+        parsed.expenses &&
+        parsed.expenses.some((e: ExpenseRecord) => e.category === 'Food & Meals')
+      ) {
+        setExpenses(parsed.expenses);
+      } else {
+        setExpenses(INITIAL_EXPENSES);
+      }
     } catch {
       // Ignore malformed storage
     }
@@ -201,6 +240,7 @@ export default function App() {
   useEffect(() => {
     try {
       const payload = {
+        schedulesVersion: 6,
         schedulesByDay,
         completedSlots,
         mutabaahState,
@@ -680,18 +720,6 @@ export default function App() {
               );
             })}
           </nav>
-
-          {/* Quick Actions */}
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => setIsEditScheduleOpen(true)}
-              className="hidden sm:inline-flex min-h-[38px] px-3 py-1.5 text-xs font-semibold text-[#3A4B37] bg-[#F7F4ED] border border-[#C7D3C0] rounded-xl hover:bg-[#EAE6DC] transition-colors whitespace-nowrap"
-            >
-              <Edit2 className="w-3.5 h-3.5 mr-1.5 my-auto" />
-              <span>Edit Schedule</span>
-            </button>
-          </div>
         </div>
       </header>
 
